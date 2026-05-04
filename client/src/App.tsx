@@ -3,6 +3,7 @@ import {useState, useEffect} from 'react';
 import './App.css';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksView from './components/Tasks/TasksView';
+import NotificationBell from './components/Alerts/NotificationBell';
 import {API_URL} from './config';
 
 interface Equipment {
@@ -540,7 +541,10 @@ function App() {
       <div className="min-h-screen bg-[#0F1C2E]">
         <header className="bg-[#192B39] p-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-[#4CAAF2]">Agenda 1.0</h1>
-          <span className="text-[#8BA3B9] text-sm">Gestión ISO 13485 / 11135</span>
+          <div className="flex items-center gap-4">
+            <span className="text-[#8BA3B9] text-sm">Gestión ISO 13485 / 11135</span>
+            <NotificationBell />
+          </div>
         </header>
         <Navigation />
         <main>
