@@ -37,10 +37,10 @@ export default function DetailModal({isOpen, onClose, title, items, color = '#4C
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
-    const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = String(d.getFullYear()).slice(-2);
-    return `${month}/${day}/${year}`;
+    return `${day}/${month}/${year}`;
   };
 
   return (
