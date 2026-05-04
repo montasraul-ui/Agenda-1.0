@@ -4,6 +4,9 @@ import './App.css';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksView from './components/Tasks/TasksView';
 import NotificationBell from './components/Alerts/NotificationBell';
+import EquipmentCharts from './components/Charts/EquipmentCharts';
+import ProjectChart from './components/Charts/ProjectChart';
+import TaskChart from './components/Charts/TaskChart';
 import {API_URL} from './config';
 
 interface Equipment {
@@ -68,15 +71,18 @@ function Navigation() {
 function Dashboard() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch(`${API_URL}/equipment`).then(r => r.json()).catch(() => []),
       fetch(`${API_URL}/projects`).then(r => r.json()).catch(() => []),
-    ]).then(([eq, proj]) => {
+      fetch(`${API_URL}/tasks`).then(r => r.json()).catch(() => []),
+    ]).then(([eq, proj, tsk]) => {
       setEquipment(eq);
       setProjects(proj);
+      setTasks(tsk);
       setLoading(false);
     });
   }, []);
@@ -126,6 +132,18 @@ function Dashboard() {
               <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Pendientes (30 días)</h3>
               <p className="text-4xl font-bold text-[#FBBF24]">{pendingCalibrations.length}</p>
             </div>
+          </div>
+
+          {/* Gráficos - 3 secciones horizontales */}
+          <div className="space-y-6">
+            {/* Sección Equipos */}
+            <EquipmentCharts equipment={equipment} />
+            
+            {/* Sección Proyectos */}
+            <ProjectChart projects={projects} />
+            
+            {/* Sección Tareas */}
+            <TaskChart tasks={tasks} />
           </div>
 
           {/* Stats adicionales */}
