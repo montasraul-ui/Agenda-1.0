@@ -33,7 +33,7 @@ function parseRowFromSheet(row: any, sheetType: string): any {
       location: String(values[2] || ''),
       calibration_date: parseDateFromValue(values[3]),
       expiration_date: parseDateFromValue(values[4]),
-      status: mapStatusOS(String(values[5])),
+      status: 'out_of_service',
       norm: 'ANUAL',
       notes: values[values.length - 1] ? String(values[values.length - 1]) : '',
     };
@@ -169,6 +169,9 @@ const SHEET_CONFIG: Record<string, {type: string; skipRows: number; name: string
   'Cal Schedule': {type: 'cal_schedule', skipRows: 2, name: 'Cal Schedule'},
   'Master List DL': {type: 'master_list_dl', skipRows: 3, name: 'Master List DL'},
   'iNSTRUMENTOS FUERA DE SERVICIO': {type: 'fuera_servicio', skipRows: 0, name: 'Instrumentos Fora de Servicio'},
+  'Instrumentos Fuera de Servicio': {type: 'fuera_servicio', skipRows: 0, name: 'Instrumentos Fuera de Servicio'},
+  'INSTRUMENTOS FUERA DE SERVICIO': {type: 'fuera_servicio', skipRows: 0, name: 'Instrumentos Fuera de Servicio'},
+  'instrumentos fuera de servicio': {type: 'fuera_servicio', skipRows: 0, name: 'Instrumentos fuera de servicio'},
 };
 
 router.post('/import', upload.single('file'), async (req, res) => {
