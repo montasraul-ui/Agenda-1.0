@@ -96,16 +96,31 @@ function Dashboard() {
 
   const outOfServiceCount = equipment.filter(e => e.status === 'out_of_service').length;
 
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const in7Days = new Date(now);
+  in7Days.setDate(in7Days.getDate() + 7);
+
   const upcomingTasks = tasks.filter(t => {
     if (t.status === 'completed' || !t.due_date) return false;
     const dueDate = new Date(t.due_date);
-    const now = new Date();
-    const in7Days = new Date(now);
-    in7Days.setDate(in7Days.getDate() + 7);
-    return dueDate >= now && dueDate <= in7Days;
+    dueDate.setHours(0, 0, 0, 0);
+    // Incluir tareas vencidas (fecha < hoy) y tareas próximas (próximos 7 días)
+    return dueDate <= in7Days;
   }).sort((a, b) => {
+    // Primero vencidas, luego por prioridad
     const priorityOrder = {high: 0, medium: 1, low: 2};
-    return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+    const aDate = new Date(a.due_date);
+    const bDate = new Date(b.due_date);
+    aDate.setHours(0, 0, 0, 0);
+    bDate.setHours(0, 0, 0, 0);
+    
+    // Si ambas están vencidas o ambas vigentes, ordenar por prioridad
+    if ((aDate < now && bDate < now) || (aDate >= now && bDate >= now)) {
+      return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+    }
+    // Las vencidas primero
+    return aDate < now ? -1 : 1;
   });
 
   return (
@@ -159,27 +174,34 @@ function Dashboard() {
               
               {/* Lista de tareas próximas */}
               <div className="bg-[#1A2D44] p-4 rounded-xl">
-                <h3 className="text-lg font-bold text-[#FBBF24] mb-4">Próximos 7 días</h3>
+                <h3 className="text-lg font-bold text-[#FBBF24] mb-4">Próximos 7 días + Atrasadas</h3>
                 {upcomingTasks.length === 0 ? (
                   <p className="text-[#8BA3B9]">No hay tareas pendientes</p>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {upcomingTasks.map(t => (
-                      <div key={t.id} className="bg-[#0F1C2E] p-3 rounded-lg flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-xs ${
-                            t.priority === 'high' ? 'bg-red-500' : 
-                            t.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                          }`}>
-                            {t.priority === 'high' ? 'Alta' : t.priority === 'medium' ? 'Media' : 'Baja'}
+                    {upcomingTasks.map(t => {
+                      const taskDueDate = new Date(t.due_date);
+                      taskDueDate.setHours(0, 0, 0, 0);
+                      const isOverdue = taskDueDate < now;
+                      
+                      return (
+                        <div key={t.id} className={`bg-[#0F1C2E] p-3 rounded-lg flex justify-between items-center ${isOverdue ? 'border-l-2 border-red-500' : ''}`}>
+                          <div className="flex items-center gap-2">
+                            {isOverdue && <span className="text-red-500 text-xs">⚠️</span>}
+                            <span className={`px-2 py-0.5 rounded text-xs ${
+                              t.priority === 'high' ? 'bg-red-500' : 
+                              t.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}>
+                              {t.priority === 'high' ? 'Alta' : t.priority === 'medium' ? 'Media' : 'Baja'}
+                            </span>
+                            <span className={isOverdue ? 'text-red-400' : 'text-white'}>{t.title}</span>
+                          </div>
+                          <span className={`text-sm ${isOverdue ? 'text-red-400' : 'text-[#8BA3B9]'}`}>
+                            {t.due_date ? new Date(t.due_date).toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'}) : '-'}
                           </span>
-                          <span className="text-white">{t.title}</span>
                         </div>
-                        <span className="text-[#8BA3B9] text-sm">
-                          {t.due_date ? new Date(t.due_date).toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'}) : '-'}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
