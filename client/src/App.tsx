@@ -68,18 +68,15 @@ function Navigation() {
 function Dashboard() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [alerts, setAlerts] = useState<{expired: Equipment[]; upcoming: Equipment[]; expiredCount: number; upcomingCount: number} | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch(`${API_URL}/equipment`).then(r => r.json()).catch(() => []),
       fetch(`${API_URL}/projects`).then(r => r.json()).catch(() => []),
-      fetch(`${API_URL}/equipment/alerts`).then(r => r.json()).catch(() => null),
-    ]).then(([eq, proj, alp]) => {
+    ]).then(([eq, proj]) => {
       setEquipment(eq);
       setProjects(proj);
-      setAlerts(alp);
       setLoading(false);
     });
   }, []);
@@ -119,38 +116,6 @@ function Dashboard() {
               <p className="text-4xl font-bold text-[#FBBF24]">{pendingCalibrations.length}</p>
             </div>
           </div>
-
-          {/* Alertas */}
-          {(alerts?.expiredCount ?? 0) > 0 && (
-            <div className="bg-[#F87171]/20 p-5 rounded-xl mb-4 border border-[#F87171]">
-              <h3 className="text-[#F87171] font-bold text-lg mb-3">⚠️ Equipos Vencidos ({alerts?.expiredCount})</h3>
-              <div className="space-y-2">
-                {alerts?.expired.slice(0, 5).map(e => (
-                  <div key={e.id} className="flex justify-between items-center bg-[#1A2D44] p-3 rounded-lg">
-                    <span className="font-medium">{e.external_id} - {e.description}</span>
-                    <span className="text-[#F87171] text-sm">Venció: {e.expiration_date}</span>
-                  </div>
-                ))}
-                {(alerts?.expiredCount ?? 0) > 5 && (
-                  <p className="text-[#8BA3B9] text-sm">...y {(alerts?.expiredCount ?? 0) - 5} más</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {(alerts?.upcomingCount ?? 0) > 0 && (
-            <div className="bg-[#FBBF24]/20 p-5 rounded-xl mb-4 border border-[#FBBF24]">
-              <h3 className="text-[#FBBF24] font-bold text-lg mb-3">⏰ Por Vencer en 30 días ({alerts?.upcomingCount})</h3>
-              <div className="space-y-2">
-                {alerts?.upcoming.slice(0, 5).map(e => (
-                  <div key={e.id} className="flex justify-between items-center bg-[#1A2D44] p-3 rounded-lg">
-                    <span className="font-medium">{e.external_id} - {e.description}</span>
-                    <span className="text-[#FBBF24] text-sm">Vence: {e.expiration_date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Stats adicionales */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
