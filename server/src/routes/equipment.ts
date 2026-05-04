@@ -84,8 +84,8 @@ function mapStatusOS(status?: string): string {
   if (!status) return 'pending';
   const map: Record<string, string> = {
     'OS': 'out_of_service',
-    'IS': 'calibrated',
-    'OC': 'calibrated',
+    'IS': 'in_service',
+    'OC': 'out_for_calibration',
     'OOS': 'expired',
   };
   return map[status] || 'pending';

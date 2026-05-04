@@ -26,18 +26,25 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  const {vencidos, pendientes, otros, fueraDeServicio} = useMemo(() => {
+  const {vencidos, pendientes, otros, outForCalibration, fueraDeServicio} = useMemo(() => {
     const safeEquipment = equipment || [];
     const vencidos: Equipment[] = [];
     const pendientes: Equipment[] = [];
     const otros: Equipment[] = [];
+    const outForCalibration: Equipment[] = [];
     const fueraDeServicio: Equipment[] = [];
 
     const in30Days = new Date(now);
     in30Days.setDate(in30Days.getDate() + 30);
 
     safeEquipment.forEach(e => {
-      // Fuera de servicio se categoriza primero
+      // Out for Calibration (OC) - equipos retirada para calibrar
+      if (e.status === 'out_for_calibration') {
+        outForCalibration.push(e);
+        return;
+      }
+
+      // Fuera de Servicio (OS) - dañados/obsoletos
       if (e.status === 'out_of_service') {
         fueraDeServicio.push(e);
         return;
@@ -64,14 +71,14 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
       }
     });
 
-    return {vencidos, pendientes, otros, fueraDeServicio};
+    return {vencidos, pendientes, otros, outForCalibration, fueraDeServicio};
   }, [equipment]);
 
   const donutData = {
-    labels: ['Vencidos', 'Pendientes', 'Otros', 'Fuera de Servicio'],
+    labels: ['Vencidos', 'Pendientes', 'Otros', 'Out for Cal.', 'Fuera de Servicio'],
     datasets: [{
-      data: [vencidos.length, pendientes.length, otros.length, fueraDeServicio.length],
-      backgroundColor: ['#F87171', '#FBBF24', '#4ADE80', '#6B7280'],
+      data: [vencidos.length, pendientes.length, otros.length, outForCalibration.length, fueraDeServicio.length],
+      backgroundColor: ['#F87171', '#FBBF24', '#4ADE80', '#4CAAF2', '#6B7280'],
       borderColor: ['#ef4444', '#eab308', '#22c55e', '#4b5563'],
       borderWidth: 2,
     }],
@@ -100,6 +107,7 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
         if (idx === 0) { items = vencidos; title = 'Equipos Vencidos'; color = '#F87171'; }
         else if (idx === 1) { items = pendientes; title = 'Equipos Pendientes (30 días)'; color = '#FBBF24'; }
         else if (idx === 2) { items = otros; title = 'Equipos Otros'; color = '#4ADE80'; }
+        else if (idx === 3) { items = outForCalibration; title = 'Equipos Out for Calibration'; color = '#4CAAF2'; }
         else { items = fueraDeServicio; title = 'Equipos Fuera de Servicio'; color = '#6B7280'; }
 
         setModalItems(items.map(e => ({id: e.id, name: e.external_id, description: e.description, date: e.expiration_date, status: e.status})));
