@@ -106,7 +106,6 @@ function Dashboard() {
     e.status === 'calibrated' || 
     (e.status !== 'out_of_service' && e.status !== 'expired' && !isExpired(e.expiration_date))
   );
-  const outOfService = equipment.filter(e => e.status === 'out_of_service');
 
   return (
     <div className="p-6">
@@ -147,11 +146,7 @@ function Dashboard() {
           </div>
 
           {/* Stats adicionales */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Fuera de Servicio</h3>
-              <p className="text-3xl font-bold text-gray-400">{outOfService.length}</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <div className="bg-[#1A2D44] p-5 rounded-xl">
               <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Proyectos Completados</h3>
               <p className="text-3xl font-bold text-[#4ADE80]">{projects.filter(p => p.status === 'completed').length}</p>
