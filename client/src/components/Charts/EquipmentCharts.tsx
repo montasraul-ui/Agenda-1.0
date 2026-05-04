@@ -26,38 +26,53 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  const isExpired = (dateStr: string) => {
-    if (!dateStr) return false;
-    const expDate = new Date(dateStr);
-    expDate.setHours(0, 0, 0, 0);
-    return expDate < now;
-  };
-
-  const {calibrated, expired, pending} = useMemo(() => {
+  const {vencidos, pendientes, otros, fueraDeServicio} = useMemo(() => {
     const safeEquipment = equipment || [];
-    const calibrated: Equipment[] = [];
-    const expired: Equipment[] = [];
-    const pending: Equipment[] = [];
+    const vencidos: Equipment[] = [];
+    const pendientes: Equipment[] = [];
+    const otros: Equipment[] = [];
+    const fueraDeServicio: Equipment[] = [];
+
+    const in30Days = new Date(now);
+    in30Days.setDate(in30Days.getDate() + 30);
 
     safeEquipment.forEach(e => {
-      if (e.status === 'out_of_service' || isExpired(e.expiration_date)) {
-        expired.push(e);
-      } else if (e.status === 'calibrated' || (!e.status && e.expiration_date)) {
-        calibrated.push(e);
+      // Fuera de servicio se categoriza primero
+      if (e.status === 'out_of_service') {
+        fueraDeServicio.push(e);
+        return;
+      }
+
+      // Si no tiene fecha de expiración,计入 "Otros"
+      if (!e.expiration_date) {
+        otros.push(e);
+        return;
+      }
+
+      const expDate = new Date(e.expiration_date);
+      expDate.setHours(0, 0, 0, 0);
+
+      if (expDate < now) {
+        // Vencido
+        vencidos.push(e);
+      } else if (expDate <= in30Days) {
+        // Pendiente (próximos 30 días)
+        pendientes.push(e);
       } else {
-        pending.push(e);
+        // Otros (más de 30 días)
+        otros.push(e);
       }
     });
 
-    return {calibrated, expired, pending};
+    return {vencidos, pendientes, otros, fueraDeServicio};
   }, [equipment]);
 
   const donutData = {
-    labels: ['Calibrados', 'Vencidos', 'Pendientes'],
+    labels: ['Vencidos', 'Pendientes', 'Otros', 'Fuera de Servicio'],
     datasets: [{
-      data: [calibrated.length, expired.length, pending.length],
-      backgroundColor: ['#4ADE80', '#F87171', '#FBBF24'],
-      borderColor: ['#22c55e', '#ef4444', '#eab308'],
+      data: [vencidos.length, pendientes.length, otros.length, fueraDeServicio.length],
+      backgroundColor: ['#F87171', '#FBBF24', '#4ADE80', '#6B7280'],
+      borderColor: ['#ef4444', '#eab308', '#22c55e', '#4b5563'],
       borderWidth: 2,
     }],
   };
@@ -82,9 +97,10 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
         let title = '';
         let color = '#4CAAF2';
 
-        if (idx === 0) { items = calibrated; title = 'Equipos Calibrados'; color = '#4ADE80'; }
-        else if (idx === 1) { items = expired; title = 'Equipos Vencidos'; color = '#F87171'; }
-        else { items = pending; title = 'Equipos Pendientes'; color = '#FBBF24'; }
+        if (idx === 0) { items = vencidos; title = 'Equipos Vencidos'; color = '#F87171'; }
+        else if (idx === 1) { items = pendientes; title = 'Equipos Pendientes (30 días)'; color = '#FBBF24'; }
+        else if (idx === 2) { items = otros; title = 'Equipos Otros'; color = '#4ADE80'; }
+        else { items = fueraDeServicio; title = 'Equipos Fuera de Servicio'; color = '#6B7280'; }
 
         setModalItems(items.map(e => ({id: e.id, name: e.external_id, description: e.description, date: e.expiration_date, status: e.status})));
         setModalTitle(title);
