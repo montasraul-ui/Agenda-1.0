@@ -8,18 +8,28 @@ interface Equipment {
   expiration_date: string;
 }
 
-interface AlertsByCategory {
-  type: 'expired' | 'upcoming' | 'calibrating';
+interface Task {
+  id: number;
+  title: string;
+  due_date: string;
+  priority: string;
+  status: string;
+  project_id: number;
+}
+
+interface AlertItem {
+  type: string;
+  category: 'equipment' | 'task';
   label: string;
   icon: string;
   color: string;
-  equipment: Equipment[];
+  items: (Equipment | Task)[];
 }
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [alerts, setAlerts] = useState<AlertsByCategory[]>([]);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,32 +49,85 @@ export default function NotificationBell() {
 
   const fetchAlerts = async () => {
     try {
-      const res = await fetch(`${API_URL}/equipment/alerts`);
-      const data = await res.json();
+      const [equipmentRes, tasksRes] = await Promise.all([
+        fetch(`${API_URL}/equipment/alerts`),
+        fetch(`${API_URL}/tasks`)
+      ]);
 
-      const categories: AlertsByCategory[] = [];
+      const equipmentData = await equipmentRes.json();
+      const tasksData: Task[] = await tasksRes.json();
 
-      if (data.expiredCount > 0) {
-        categories.push({
+      const newAlerts: AlertItem[] = [];
+
+      // Equipos Vencidos
+      if (equipmentData.expiredCount > 0) {
+        newAlerts.push({
           type: 'expired',
+          category: 'equipment',
           label: 'Equipos Vencidos',
           icon: '🔴',
           color: 'text-red-400',
-          equipment: data.expired
+          items: equipmentData.expired
         });
       }
 
-      if (data.upcomingCount > 0) {
-        categories.push({
+      // Equipos por Vencer (30 días)
+      if (equipmentData.upcomingCount > 0) {
+        newAlerts.push({
           type: 'upcoming',
+          category: 'equipment',
           label: 'Por Vencer (30 días)',
           icon: '🟡',
           color: 'text-yellow-400',
-          equipment: data.upcoming
+          items: equipmentData.upcoming
         });
       }
 
-      setAlerts(categories);
+      // Tareas atrasadas
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const overdueTasks = tasksData.filter((t: Task) => {
+        if (t.status === 'completed' || !t.due_date) return false;
+        const dueDate = new Date(t.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate < today;
+      });
+
+      if (overdueTasks.length > 0) {
+        newAlerts.push({
+          type: 'tasks_overdue',
+          category: 'task',
+          label: 'Tareas Atrasadas',
+          icon: '⚠️',
+          color: 'text-red-400',
+          items: overdueTasks
+        });
+      }
+
+      // Tareas esta semana (próximos 7 días)
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+
+      const weekTasks = tasksData.filter((t: Task) => {
+        if (t.status === 'completed' || !t.due_date) return false;
+        const dueDate = new Date(t.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate >= today && dueDate <= nextWeek;
+      });
+
+      if (weekTasks.length > 0) {
+        newAlerts.push({
+          type: 'tasks_week',
+          category: 'task',
+          label: 'Tareas Esta Semana',
+          icon: '📋',
+          color: 'text-blue-400',
+          items: weekTasks
+        });
+      }
+
+      setAlerts(newAlerts);
     } catch (error) {
       console.error('Error fetching alerts:', error);
     }
@@ -74,6 +137,13 @@ export default function NotificationBell() {
 
   const toggleCategory = (type: string) => {
     setExpandedCategory(expandedCategory === type ? null : type);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}`;
   };
 
   return (
@@ -124,7 +194,7 @@ export default function NotificationBell() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="bg-[#0F1C2E] px-2 py-1 rounded text-sm text-[#8BA3B9]">
-                          {category.equipment.length}
+                          {category.items.length}
                         </span>
                         <span className="text-[#8BA3B9]">
                           {expandedCategory === category.type ? '▼' : '▶'}
@@ -134,20 +204,27 @@ export default function NotificationBell() {
 
                     {expandedCategory === category.type && (
                       <div className="bg-[#0F1C2E] p-2 space-y-1">
-                        {category.equipment.map((eq) => (
+                        {category.items.map((item: any) => (
                           <div
-                            key={eq.id}
+                            key={item.id}
                             className="p-2 rounded bg-[#1A2D44] flex justify-between items-center text-sm"
                           >
-                            <div>
-                              <span className="font-medium text-white">{eq.external_id}</span>
-                              <span className="text-[#8BA3B9] ml-2 text-xs">
-                                {eq.description.substring(0, 20)}
-                                {eq.description.length > 20 ? '...' : ''}
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-white">
+                                {category.category === 'equipment' 
+                                  ? (item as Equipment).external_id 
+                                  : (item as Task).title}
+                              </span>
+                              <span className="text-[#8BA3B9] ml-2 text-xs truncate">
+                                {category.category === 'equipment' 
+                                  ? (item as Equipment).description.substring(0, 15)
+                                  : (item as Task).priority}
                               </span>
                             </div>
-                            <span className={category.type === 'expired' ? 'text-red-400' : 'text-yellow-400'}>
-                              {eq.expiration_date}
+                            <span className={`ml-2 ${category.color}`}>
+                              {formatDate(category.category === 'equipment' 
+                                ? (item as Equipment).expiration_date 
+                                : (item as Task).due_date)}
                             </span>
                           </div>
                         ))}
