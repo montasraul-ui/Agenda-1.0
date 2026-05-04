@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {pool} from '../index';
+import {pool} from '../index.js';
 import multer from 'multer';
 import * as XLSX from 'xlsx';
 import {parseExcelRow, validateEquipmentData, ExcelRow, excelDateToJSDate} from '../utils/equipment.js';

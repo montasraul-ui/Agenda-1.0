@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {pool} from '../index';
+import {pool} from '../index.js';
 
 const router = Router();
 
