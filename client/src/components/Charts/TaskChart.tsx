@@ -24,12 +24,13 @@ export default function TaskChart({tasks}: TaskChartProps) {
   const [modalItems, setModalItems] = useState<{id: number; name: string; description: string; date: string; priority?: string}[]>([]);
 
   const {high, medium, low, completed, pending} = useMemo(() => {
+    const safeTasks = tasks || [];
     return {
-      high: tasks.filter(t => t.priority === 'high'),
-      medium: tasks.filter(t => t.priority === 'medium'),
-      low: tasks.filter(t => t.priority === 'low'),
-      completed: tasks.filter(t => t.status === 'completed'),
-      pending: tasks.filter(t => t.status !== 'completed'),
+      high: safeTasks.filter(t => t.priority === 'high'),
+      medium: safeTasks.filter(t => t.priority === 'medium'),
+      low: safeTasks.filter(t => t.priority === 'low'),
+      completed: safeTasks.filter(t => t.status === 'completed'),
+      pending: safeTasks.filter(t => t.status !== 'completed'),
     };
   }, [tasks]);
 

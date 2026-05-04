@@ -34,11 +34,12 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
   };
 
   const {calibrated, expired, pending} = useMemo(() => {
+    const safeEquipment = equipment || [];
     const calibrated: Equipment[] = [];
     const expired: Equipment[] = [];
     const pending: Equipment[] = [];
 
-    equipment.forEach(e => {
+    safeEquipment.forEach(e => {
       if (e.status === 'out_of_service' || isExpired(e.expiration_date)) {
         expired.push(e);
       } else if (e.status === 'calibrated' || (!e.status && e.expiration_date)) {
@@ -97,8 +98,9 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const currentYear = now.getFullYear();
     const counts = new Array(12).fill(0);
+    const safeEquipment = equipment || [];
 
-    equipment.forEach(e => {
+    safeEquipment.forEach(e => {
       if (!e.expiration_date) return;
       const expDate = new Date(e.expiration_date);
       if (expDate.getFullYear() === currentYear) {

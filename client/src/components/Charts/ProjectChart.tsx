@@ -24,10 +24,11 @@ export default function ProjectChart({projects}: ProjectChartProps) {
   const [modalItems, setModalItems] = useState<{id: number; name: string; description: string; date: string; status?: string}[]>([]);
 
   const {active, completed, onHold} = useMemo(() => {
+    const safeProjects = projects || [];
     return {
-      active: projects.filter(p => p.status === 'active'),
-      completed: projects.filter(p => p.status === 'completed'),
-      onHold: projects.filter(p => p.status === 'on_hold'),
+      active: safeProjects.filter(p => p.status === 'active'),
+      completed: safeProjects.filter(p => p.status === 'completed'),
+      onHold: safeProjects.filter(p => p.status === 'on_hold'),
     };
   }, [projects]);
 
