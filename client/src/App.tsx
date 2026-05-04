@@ -88,7 +88,18 @@ function Dashboard() {
     return daysUntil <= 30 && daysUntil > 0;
   });
 
-  const calibrated = equipment.filter(e => e.status === 'calibrated');
+  const isExpired = (dateStr: string) => {
+    if (!dateStr) return false;
+    const expDate = new Date(dateStr);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return expDate < now;
+  };
+
+  const calibrated = equipment.filter(e => 
+    e.status === 'calibrated' || 
+    (e.status !== 'out_of_service' && e.status !== 'expired' && !isExpired(e.expiration_date))
+  );
   const outOfService = equipment.filter(e => e.status === 'out_of_service');
 
   return (
