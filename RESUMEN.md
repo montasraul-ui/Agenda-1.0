@@ -39,11 +39,15 @@ Aplicación web para gestión de calendario, proyectos y seguimiento de calibrac
 - UI Dashboard, Equipos, Proyectos, Calendario ✓
 - Compilación exitosa (frontend + backend) ✓
 - **Importación Excel** ✓ - Soporta 3 hojas: Cal Schedule, Master List DL, Instrumentos Fuera de Servicio
-- **Calendario Unificado** ✓ - 3 vistas (mensual/semanal/diaria), eventos por color de vencimiento
+- **Calendario Unificado** ✓ - 3 vistas (mensual/semanal/diaria), muestra tareas por fecha
 - **TDD Tests** ✓ (28 tests passing: 13 server + 15 client)
 - **Sistema de Alarmas** ✓ - Campana de notificaciones con grouping por categoría (equipos + tareas)
 - **Dashboard con Gráficos** ✓ - 3 secciones horizontales (Equipos, Proyectos, Tareas) con Chart.js
-- **Gráfico Equipos** ✓ - 4 categorías: Vencidos, Pendientes (30 días), Otros, Fuera de Servicio
+- **Gráfico Equipos** ✓ - 5 categorías: Vencidos, Pendientes (30 días), Otros, Out for Calibration, Fuera de Servicio
+- **Calendario con Tareas** ✓ - Muestra actividades/tareas individuales con color por prioridad
+- **Checkbox de Completado** ✓ - Checkbox en tareas para marcar como completadas
+- **Barra de Progreso** ✓ - Porcentaje de tareas completadas en tarjeta de proyecto
+- **Tareas Vencidas** ✓ - Lista de tareas próximas incluye atrasadas con indicador visual
 - ✅ Desplegado en producción (Render)
 
 ---
@@ -156,10 +160,32 @@ agenda-1.0/
 - **Gráfico Tareas**: Barras horizontales (Alta/Media/Baja prioridad + % completado)
 - Click en cualquier gráfico → Modal con detalle de elementos
 
-### 2026-05-04 - Gráfico Equipos (4 categorías)
+### 2026-05-04 - Gráfico Equipos (5 categorías)
 - Vencidos: fecha_expiración < fecha_actual (rojo)
 - Pendientes: fecha_actual <= fecha <= +30 días (amarillo)
 - Otros: fecha_expiración > +30 días (verde)
+- Out for Calibration: status = 'out_for_calibration' (azul)
 - Fuera de Servicio: status = 'out_of_service' (gris)
+
+### 2026-05-04 - Redistribución del Dashboard
+- 3 secciones horizontales independientes:
+  - **Equipos**: Total, Pendientes 30 días, Fuera de Servicio + gráficos
+  - **Proyectos**: Total, Completados + gráfico
+  - **Tareas**: Gráfico + Lista de tareas próximas 7 días
+
+### 2026-05-04 - Calendario con Tareas
+- Calendario ahora muestra actividades/tareas individuales (no proyectos)
+- Color por prioridad: Alta (rojo), Media (amarillo), Baja (verde)
+- Formato de fecha dd/mm/yy en detalles
+
+### 2026-05-04 - Checkbox y Progreso de Proyectos
+- Checkbox en cada tarea para marcar como completada
+- Barra de progreso visual en tarjeta de proyecto
+- Porcentaje calculado: (tareas completadas / total tareas) × 100
+
+### 2026-05-04 - Tareas Vencidas
+- Lista de tareas próximas incluye tareas vencidas
+- Indicador visual (⚠️ + borde rojo) para tareas atrasadas
+- Tareas vencidas aparecen primero en la lista
 
 (End of file)
