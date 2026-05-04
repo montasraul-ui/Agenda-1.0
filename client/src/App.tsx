@@ -94,18 +94,19 @@ function Dashboard() {
     return daysUntil <= 30 && daysUntil > 0;
   });
 
-  const isExpired = (dateStr: string) => {
-    if (!dateStr) return false;
-    const expDate = new Date(dateStr);
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return expDate < now;
-  };
+  const outOfServiceCount = equipment.filter(e => e.status === 'out_of_service').length;
 
-  const calibrated = equipment.filter(e => 
-    e.status === 'calibrated' || 
-    (e.status !== 'out_of_service' && e.status !== 'expired' && !isExpired(e.expiration_date))
-  );
+  const upcomingTasks = tasks.filter(t => {
+    if (t.status === 'completed' || !t.due_date) return false;
+    const dueDate = new Date(t.due_date);
+    const now = new Date();
+    const in7Days = new Date(now);
+    in7Days.setDate(in7Days.getDate() + 7);
+    return dueDate >= now && dueDate <= in7Days;
+  }).sort((a, b) => {
+    const priorityOrder = {high: 0, medium: 1, low: 2};
+    return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+  });
 
   return (
     <div className="p-6">
@@ -114,46 +115,74 @@ function Dashboard() {
         <p className="text-[#8BA3B9]">Cargando...</p>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Total Equipos</h3>
-              <p className="text-4xl font-bold text-[#4CAAF2]">{equipment.length}</p>
+          {/* SECCIÓN 1: EQUIPOS */}
+          <div className="space-y-4 mb-8">
+            <h2 className="text-xl font-bold text-[#4CAAF2]">Equipos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-[#1A2D44] p-5 rounded-xl">
+                <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Total Equipos</h3>
+                <p className="text-4xl font-bold text-[#4CAAF2]">{equipment.length}</p>
+              </div>
+              <div className="bg-[#1A2D44] p-5 rounded-xl">
+                <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Pendientes (30 días)</h3>
+                <p className="text-4xl font-bold text-[#FBBF24]">{pendingCalibrations.length}</p>
+              </div>
+              <div className="bg-[#1A2D44] p-5 rounded-xl">
+                <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Fuera de Servicio</h3>
+                <p className="text-4xl font-bold text-gray-400">{outOfServiceCount}</p>
+              </div>
             </div>
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Calibrados</h3>
-              <p className="text-4xl font-bold text-[#4ADE80]">{calibrated.length}</p>
-            </div>
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Proyectos Activos</h3>
-              <p className="text-4xl font-bold text-[#4CAAF2]">{projects.filter(p => p.status === 'active').length}</p>
-            </div>
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Pendientes (30 días)</h3>
-              <p className="text-4xl font-bold text-[#FBBF24]">{pendingCalibrations.length}</p>
-            </div>
-          </div>
-
-          {/* Gráficos - 3 secciones horizontales */}
-          <div className="space-y-6">
-            {/* Sección Equipos */}
             <EquipmentCharts equipment={equipment} />
-            
-            {/* Sección Proyectos */}
-            <ProjectChart projects={projects} />
-            
-            {/* Sección Tareas */}
-            <TaskChart tasks={tasks} />
           </div>
 
-          {/* Stats adicionales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Proyectos Completados</h3>
-              <p className="text-3xl font-bold text-[#4ADE80]">{projects.filter(p => p.status === 'completed').length}</p>
+          {/* SECCIÓN 2: PROYECTOS */}
+          <div className="space-y-4 mb-8">
+            <h2 className="text-xl font-bold text-[#4ADE80]">Proyectos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-[#1A2D44] p-5 rounded-xl">
+                <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Total Proyectos</h3>
+                <p className="text-4xl font-bold text-[#4CAAF2]">{projects.length}</p>
+              </div>
+              <div className="bg-[#1A2D44] p-5 rounded-xl">
+                <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Completados</h3>
+                <p className="text-4xl font-bold text-[#4ADE80]">{projects.filter(p => p.status === 'completed').length}</p>
+              </div>
             </div>
-            <div className="bg-[#1A2D44] p-5 rounded-xl">
-              <h3 className="text-[#8BA3B9] text-sm uppercase mb-2">Total Proyectos</h3>
-              <p className="text-3xl font-bold">{projects.length}</p>
+            <ProjectChart projects={projects} />
+          </div>
+
+          {/* SECCIÓN 3: TAREAS/ACTIVIDADES */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-[#F87171]">Tareas/Actividades</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TaskChart tasks={tasks} />
+              
+              {/* Lista de tareas próximas */}
+              <div className="bg-[#1A2D44] p-4 rounded-xl">
+                <h3 className="text-lg font-bold text-[#FBBF24] mb-4">Próximos 7 días</h3>
+                {upcomingTasks.length === 0 ? (
+                  <p className="text-[#8BA3B9]">No hay tareas pendientes</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {upcomingTasks.map(t => (
+                      <div key={t.id} className="bg-[#0F1C2E] p-3 rounded-lg flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            t.priority === 'high' ? 'bg-red-500' : 
+                            t.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}>
+                            {t.priority === 'high' ? 'Alta' : t.priority === 'medium' ? 'Media' : 'Baja'}
+                          </span>
+                          <span className="text-white">{t.title}</span>
+                        </div>
+                        <span className="text-[#8BA3B9] text-sm">
+                          {t.due_date ? new Date(t.due_date).toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit'}) : '-'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>
