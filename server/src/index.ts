@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import {Pool} from 'pg';
-import equipmentRoutes from './routes/equipment';
-import projectsRoutes from './routes/projects';
-import tasksRoutes from './routes/tasks';
+import equipmentRoutes from './routes/equipment.js';
+import projectsRoutes from './routes/projects.js';
+import tasksRoutes from './routes/tasks.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
