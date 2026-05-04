@@ -15,15 +15,17 @@ export default function CalendarView() {
 
   const loadEvents = useCallback(async () => {
     try {
-      const [projectsRes, equipmentRes] = await Promise.all([
+      const [projectsRes, equipmentRes, tasksRes] = await Promise.all([
         fetch(`${API_URL}/projects`),
         fetch(`${API_URL}/equipment`),
+        fetch(`${API_URL}/tasks`),
       ]);
       
       const projects: ProjectEvent[] = await projectsRes.json();
       const equipment: EquipmentEvent[] = await equipmentRes.json();
+      const tasks: any[] = await tasksRes.json();
       
-      const mergedEvents = mergeEvents(projects, equipment);
+      const mergedEvents = mergeEvents(projects, equipment, tasks);
       setEvents(mergedEvents);
     } catch (error) {
       console.error('Error loading calendar events:', error);

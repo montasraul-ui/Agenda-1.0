@@ -88,15 +88,18 @@ describe('mapEquipmentToEvents', () => {
 });
 
 describe('mergeEvents', () => {
-  it('should merge projects and equipment', () => {
+  it('should merge projects, equipment and tasks', () => {
     const projects = [
       { id: 1, name: 'Proyecto 1', description: 'Desc', status: 'active', start_date: '2026-06-01', end_date: '2026-06-30' },
     ];
     const equipment = [
       { id: 1, external_id: 'DR-00001', description: 'Sensor', location: '', calibration_date: '', expiration_date: '2026-12-01', status: 'calibrated', norm: '', notes: '' },
     ];
-    const events = mergeEvents(projects, equipment);
-    expect(events).toHaveLength(2);
+    const tasks = [
+      { id: 1, project_id: 1, title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+    ];
+    const events = mergeEvents(projects, equipment, tasks);
+    expect(events).toHaveLength(3);
   });
 });
 

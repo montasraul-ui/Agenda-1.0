@@ -5,8 +5,8 @@ export interface CalendarEvent {
   start: string;
   end?: string;
   color: string;
-  type: 'project' | 'equipment';
-  data: ProjectEvent | EquipmentEvent;
+  type: 'project' | 'equipment' | 'task';
+  data: ProjectEvent | EquipmentEvent | TaskEvent;
 }
 
 export interface ProjectEvent {
@@ -16,6 +16,16 @@ export interface ProjectEvent {
   status: string;
   start_date: string;
   end_date: string;
+}
+
+export interface TaskEvent {
+  id: number;
+  project_id: number | null;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  due_date: string;
 }
 
 export interface EquipmentEvent {
@@ -36,7 +46,19 @@ export const COLORS = {
   equipmentGreen: '#4ADE80',
   equipmentOrange: '#FBBF24',
   equipmentRed: '#F87171',
+  taskHigh: '#F87171',
+  taskMedium: '#FBBF24',
+  taskLow: '#4ADE80',
 };
+
+export function getPriorityColor(priority: string): string {
+  switch (priority) {
+    case 'high': return COLORS.taskHigh;
+    case 'medium': return COLORS.taskMedium;
+    case 'low': return COLORS.taskLow;
+    default: return COLORS.taskMedium;
+  }
+}
 
 /**
  * Calcula los días hasta el vencimiento
@@ -91,22 +113,47 @@ export function mapEquipmentToEvents(equipment: EquipmentEvent[]): CalendarEvent
 }
 
 /**
- * Combina proyectos y equipos en un solo array de eventos
+ * Convierte tareas a eventos del calendario
  */
-export function mergeEvents(projects: ProjectEvent[], equipment: EquipmentEvent[]): CalendarEvent[] {
+export function mapTasksToEvents(tasks: TaskEvent[], projects: ProjectEvent[]): CalendarEvent[] {
+  const projectMap = new Map(projects.map(p => [p.id, p.name]));
+  
+  return tasks
+    .filter(task => task.due_date && task.status !== 'completed')
+    .map(task => {
+      const projectName = task.project_id ? projectMap.get(task.project_id) : 'Sin proyecto';
+      return {
+        id: `task-${task.id}`,
+        title: `${task.title} (${projectName})`,
+        start: task.due_date,
+        color: getPriorityColor(task.priority),
+        type: 'task' as const,
+        data: task,
+      };
+    });
+}
+
+/**
+ * Combina proyectos, equipos y tareas en un solo array de eventos
+ */
+export function mergeEvents(projects: ProjectEvent[], equipment: EquipmentEvent[], tasks: TaskEvent[]): CalendarEvent[] {
   return [
     ...mapProjectsToEvents(projects),
     ...mapEquipmentToEvents(equipment),
+    ...mapTasksToEvents(tasks, projects),
   ];
 }
 
 /**
- * Formatea fecha para mostrar en modal
+ * Formatea fecha para mostrar en modal (dd/mm/yy)
  */
 export function formatDateShort(dateStr: string): string {
   if (!dateStr) return '-';
-  const [year, month, day] = dateStr.split('-');
-  return `${month}/${day}/${year}`;
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
 }
 
 /**

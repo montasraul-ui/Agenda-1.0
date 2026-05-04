@@ -466,7 +466,29 @@ function ProjectsList() {
               </div>
               <p className="text-[#8BA3B9] text-sm mb-2">{p.description || 'Sin descripción'}</p>
               <p className="text-[#8BA3B9] text-xs">Fechas: {p.start_date || '-'} → {p.end_date || '-'}</p>
-              <p className="text-[#4CAAF2] text-sm mt-2">{tasks.filter(t => t.project_id === p.id).length} actividades</p>
+              
+              {/* Barra de progreso */}
+              {(() => {
+                const projectTasks = tasks.filter(t => t.project_id === p.id);
+                const completedTasks = projectTasks.filter(t => t.status === 'completed').length;
+                const totalTasks = projectTasks.length;
+                const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                return (
+                  <div className="mt-3">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-[#8BA3B9]">{completedTasks}/{totalTasks} actividades</span>
+                      <span className="text-[#4ADE80]">{progress}%</span>
+                    </div>
+                    <div className="w-full bg-[#0F1C2E] rounded-full h-2">
+                      <div 
+                        className="bg-[#4ADE80] h-2 rounded-full transition-all" 
+                        style={{width: `${progress}%`}}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
+              
               <div className="flex gap-2 mt-3">
                 <button onClick={() => handleEdit(p)} className="bg-[#4CAAF2] px-3 py-1 rounded text-sm hover:bg-[#3a8ecc]">Editar</button>
                 <button onClick={() => handleDelete(p.id)} className="bg-[#F87171] px-3 py-1 rounded text-sm hover:bg-[#dc2626]">Eliminar</button>

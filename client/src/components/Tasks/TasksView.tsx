@@ -85,6 +85,16 @@ export default function TasksView() {
     loadData();
   };
 
+  const handleToggleComplete = async (task: Task) => {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    await fetch(`${API_URL}/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({...task, status: newStatus})
+    });
+    loadData();
+  };
+
   const handleDelete = async (id: number) => {
     if (confirm('¿Eliminar tarea?')) {
       await fetch(`${API_URL}/tasks/${id}`, {method: 'DELETE'});
@@ -231,6 +241,12 @@ export default function TasksView() {
           {filteredTasks.map(task => (
             <div key={task.id} className="bg-[#1A2D44] p-4 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-4">
+                <input 
+                  type="checkbox"
+                  checked={task.status === 'completed'}
+                  onChange={() => handleToggleComplete(task)}
+                  className="w-5 h-5 rounded accent-green-500 cursor-pointer"
+                />
                 <select 
                   value={task.status}
                   onChange={e => handleStatusChange(task, e.target.value)}
