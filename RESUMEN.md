@@ -38,11 +38,13 @@ Aplicación web para gestión de calendario, proyectos y seguimiento de calibrac
 - Backend API listo (CRUD equipment + projects + tasks) ✓
 - UI Dashboard, Equipos, Proyectos, Calendario ✓
 - Compilación exitosa (frontend + backend) ✓
-- **Importación Excel** ✓ (Fase 1) - Soporta 3 hojas: Cal Schedule, Master List DL, Instrumentos Fuera de Servicio
-- **Calendario Unificado** ✓ (Fase 2) - 3 vistas (mensual/semanal/diaria), eventos por color de vencimiento
+- **Importación Excel** ✓ - Soporta 3 hojas: Cal Schedule, Master List DL, Instrumentos Fuera de Servicio
+- **Calendario Unificado** ✓ - 3 vistas (mensual/semanal/diaria), eventos por color de vencimiento
 - **TDD Tests** ✓ (28 tests passing: 13 server + 15 client)
-- **Alertas Automáticas** ✓ (Fase 3) - Dashboard mejorado con endpoint /equipment/alerts, lista de equipos vencidos y por vencer
-- ✅ Desplegado en producción
+- **Sistema de Alarmas** ✓ - Campana de notificaciones con grouping por categoría (equipos + tareas)
+- **Dashboard con Gráficos** ✓ - 3 secciones horizontales (Equipos, Proyectos, Tareas) con Chart.js
+- **Gráfico Equipos** ✓ - 4 categorías: Vencidos, Pendientes (30 días), Otros, Fuera de Servicio
+- ✅ Desplegado en producción (Render)
 
 ---
 
@@ -52,24 +54,35 @@ agenda-1.0/
 ├── client/                 # Frontend React
 │   ├── src/
 │   │   ├── App.tsx         # Main app con rutas
+│   │   ├── config.ts       # API URL hardcoded
 │   │   ├── components/
-│   │   │   └── Calendar/   # Componente calendario
-│   │   │       ├── CalendarView.tsx
-│   │   │       ├── EventModal.tsx
-│   │   │       ├── calendarUtils.ts
-│   │   │       └── calendarUtils.test.ts
+│   │   │   ├── Alerts/
+│   │   │   │   ├── NotificationBell.tsx    # Campana de notificaciones
+│   │   │   │   └── NotificationBell.tsx
+│   │   │   ├── Charts/
+│   │   │   │   ├── DetailModal.tsx         # Modal para detalles de gráficos
+│   │   │   │   ├── EquipmentCharts.tsx     # Donut + Barras mensual
+│   │   │   │   ├── ProjectChart.tsx        # Barras verticales
+│   │   │   │   └── TaskChart.tsx           # Barras horizontales
+│   │   │   ├── Calendar/
+│   │   │   │   ├── CalendarView.tsx
+│   │   │   │   ├── EventModal.tsx
+│   │   │   │   └── calendarUtils.ts
+│   │   │   └── Tasks/
+│   │   │       └── TasksView.tsx
 │   │   └── index.css      # Estilos Tailwind
+│   ├── package.json       # Dependencias: chart.js, react-chartjs-2
 │   └── dist/              # Build production
 ├── server/                 # Backend Express
 │   ├── src/
 │   │   ├── index.ts       # Servidor principal
 │   │   ├── migrate.ts     # Migración DB
-│   │   ├── utils/        # Utilidades
+│   │   ├── utils/         # Utilidades
 │   │   │   └── equipment.ts
 │   │   ├── routes/        # API endpoints
-│   │   │   ├── equipment.ts
-│   │   │   ├── projects.ts
-│   │   │   └── tasks.ts
+│   │   │   ├── equipment.ts   # CRUD + import Excel + alerts
+│   │   │   ├── projects.ts   # CRUD + actividades
+│   │   │   └── tasks.ts       # CRUD
 │   │   └── tests/         # Tests TDD
 │   │       └── equipment.test.ts
 │   └── dist/              # Build production
@@ -82,7 +95,7 @@ agenda-1.0/
 
 ## URLs de Producción
 - **Frontend**: https://agenda-frontend-s2tu.onrender.com
-- **Backend**: (desplegado en Render)
+- **Backend**: https://agenda-backend-zrd6.onrender.com
 - **Base de datos**: Neon (PostgreSQL)
 
 ## Costo Estimado
@@ -125,5 +138,28 @@ agenda-1.0/
 - Backend desplegado en Render
 - Base de datos: Neon (PostgreSQL)
 - Fixes en Proyectos: eliminar clonación, agregar editar/eliminar, gestionar actividades
+
+### 2026-05-04 - Fix Conexión API
+- API URL hardcoded en config.ts para conectar frontend con backend
+- Frontend ahora apunta a: https://agenda-backend-zrd6.onrender.com/api
+
+### 2026-05-04 - Sistema de Alarmas
+- Botón de campana en header con notificaciones
+- Agrupamiento por categoría (1 alarma por tipo, no por cantidad)
+- Incluye: Equipos Vencidos, Por Vencer (30 días), Tareas Atrasadas, Tareas Esta Semana
+- Click en categoría despliega lista de equipos/tareas
+
+### 2026-05-04 - Dashboard con Gráficos
+- 3 secciones horizontales: Equipos, Proyectos, Tareas
+- **Gráfico Equipos**: Donut 4 categorías + Barras mensual (vencimientos por mes)
+- **Gráfico Proyectos**: Barras verticales (Activos/Completados/En pausa)
+- **Gráfico Tareas**: Barras horizontales (Alta/Media/Baja prioridad + % completado)
+- Click en cualquier gráfico → Modal con detalle de elementos
+
+### 2026-05-04 - Gráfico Equipos (4 categorías)
+- Vencidos: fecha_expiración < fecha_actual (rojo)
+- Pendientes: fecha_actual <= fecha <= +30 días (amarillo)
+- Otros: fecha_expiración > +30 días (verde)
+- Fuera de Servicio: status = 'out_of_service' (gris)
 
 (End of file)
