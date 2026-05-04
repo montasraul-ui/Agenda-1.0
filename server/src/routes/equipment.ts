@@ -2,7 +2,18 @@ import {Router} from 'express';
 import {pool} from '../index.js';
 import multer from 'multer';
 import * as XLSX from 'xlsx';
-import {parseExcelRow, validateEquipmentData, ExcelRow, excelDateToJSDate} from '../utils/equipment.js';
+import {validateEquipmentData, excelDateToJSDate} from '../utils/equipment.js';
+
+function mapStatus(excelStatus?: string): string {
+  if (!excelStatus) return 'pending';
+  const statusMap: Record<string, string> = {
+    'IS': 'calibrated',
+    'OOS': 'expired',
+    'N/A': 'pending',
+    'IP': 'in_progress',
+  };
+  return statusMap[excelStatus.toUpperCase()] || 'pending';
+}
 
 const router = Router();
 const upload = multer({
@@ -12,25 +23,61 @@ const upload = multer({
 
 function parseRowFromSheet(row: any, sheetType: string): any {
   if (sheetType === 'cal_schedule' || sheetType === 'master_list_dl') {
-    return parseExcelRow(row as ExcelRow);
+    return parseExcelRowByIndex(row);
   }
   if (sheetType === 'fuera_servicio') {
-    const keys = Object.keys(row);
-    const firstKey = keys[0];
-    const secondKey = keys[1];
-    const thirdKey = keys[2];
+    const values = Object.values(row).filter(v => v !== undefined && v !== null && v !== '');
     return {
-      external_id: String(row[firstKey] || ''),
-      description: String(row[secondKey] || ''),
-      location: String(row[thirdKey] || ''),
-      calibration_date: excelDateToJSDate(row['02/12/25'] as number),
-      expiration_date: excelDateToJSDate(row['02/12/26'] as number),
-      status: mapStatusOS(row['OS'] as string),
-      norm: row['ANUAL'] ? 'ANUAL' : '',
-      notes: row[keys[keys.length - 1]] ? String(row[keys[keys.length - 1]]) : '',
+      external_id: String(values[0] || ''),
+      description: String(values[1] || ''),
+      location: String(values[2] || ''),
+      calibration_date: parseDateFromValue(values[3]),
+      expiration_date: parseDateFromValue(values[4]),
+      status: mapStatusOS(String(values[5])),
+      norm: 'ANUAL',
+      notes: values[values.length - 1] ? String(values[values.length - 1]) : '',
     };
   }
   return {external_id: '', description: '', location: '', calibration_date: null, expiration_date: null, status: 'pending', norm: '', notes: ''};
+}
+
+function parseExcelRowByIndex(row: any): any {
+  const values = Object.values(row).filter(v => v !== undefined && v !== null && v !== '');
+  if (values.length < 3) return {external_id: '', description: '', location: '', calibration_date: null, expiration_date: null, status: 'pending', norm: '', notes: ''};
+  
+  return {
+    external_id: String(values[0] || ''),
+    description: String(values[1] || ''),
+    location: String(values[2] || ''),
+    calibration_date: parseDateFromValue(values[3]),
+    expiration_date: parseDateFromValue(values[4]),
+    status: mapStatus(String(values[5])),
+    norm: String(values[6] || ''),
+    notes: values[7] ? String(values[7]) : '',
+  };
+}
+
+function parseDateFromValue(value: any): string | null {
+  if (!value) return null;
+  if (typeof value === 'number') {
+    return excelDateToJSDate(value);
+  }
+  if (typeof value === 'string') {
+    const cleaned = value.trim();
+    const dateMatch = cleaned.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+    if (dateMatch) {
+      const day = dateMatch[1].padStart(2, '0');
+      const month = dateMatch[2].padStart(2, '0');
+      let year = dateMatch[3];
+      if (year.length === 2) year = '20' + year;
+      return `${year}-${month}-${day}`;
+    }
+    const isoDate = new Date(cleaned);
+    if (!isNaN(isoDate.getTime())) {
+      return isoDate.toISOString().split('T')[0];
+    }
+  }
+  return null;
 }
 
 function mapStatusOS(status?: string): string {
