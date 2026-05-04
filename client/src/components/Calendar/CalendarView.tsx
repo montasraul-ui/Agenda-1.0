@@ -6,8 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import EventModal from './EventModal';
 import type {CalendarEvent, ProjectEvent, EquipmentEvent} from './calendarUtils';
 import {mergeEvents} from './calendarUtils';
-
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+import {API_URL} from '../../config';
 
 export default function CalendarView() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);

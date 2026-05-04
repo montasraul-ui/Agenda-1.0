@@ -3,8 +3,7 @@ import {useState, useEffect} from 'react';
 import './App.css';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksView from './components/Tasks/TasksView';
-
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+import {API_URL} from './config';
 
 interface Equipment {
   id: number;

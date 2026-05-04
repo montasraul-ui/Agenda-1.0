@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
-
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+import {API_URL} from '../../config';
 
 interface Task {
   id: number;

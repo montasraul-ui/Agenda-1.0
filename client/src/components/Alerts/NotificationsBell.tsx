@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import type {Alert, EquipmentEvent} from './alertsUtils';
 import {generateAlerts, getAlertLevelColor, getAlertLevelLabel, formatDaysUntil} from './alertsUtils';
-
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+import {API_URL} from '../../config';
 
 interface NotificationsBellProps {
   onNavigate?: (path: string) => void;
