@@ -342,22 +342,79 @@ function ProjectsList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [form, setForm] = useState({name: '', description: '', status: 'active', start_date: '', end_date: ''});
+  const [newActivity, setNewActivity] = useState({title: '', description: '', priority: 'medium', due_date: ''});
 
-  useEffect(() => {
-    Promise.all([
+  const refreshData = async () => {
+    const [p, t] = await Promise.all([
       fetch(`${API_URL}/projects`).then(r => r.json()),
       fetch(`${API_URL}/tasks`).then(r => r.json()),
-    ]).then(([p, t]) => {setProjects(p); setTasks(t); setLoading(false);});
+    ]);
+    setProjects(p);
+    setTasks(t);
+  };
+
+  useEffect(() => {
+    refreshData().then(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`${API_URL}/projects`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(form)});
+    const res = await fetch(`${API_URL}/projects`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(form),
+    });
+    const newProject = await res.json();
     setShowForm(false);
     setForm({name: '', description: '', status: 'active', start_date: '', end_date: ''});
-    setProjects([...projects, await fetch(`${API_URL}/projects`).then(r => r.json()).then(d => d[d.length - 1])]);
+    setProjects([...projects, newProject]);
   };
+
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+    setForm({name: project.name, description: project.description || '', status: project.status, start_date: project.start_date || '', end_date: project.end_date || ''});
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject) return;
+    await fetch(`${API_URL}/projects/${editingProject.id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(form),
+    });
+    setShowEditModal(false);
+    setEditingProject(null);
+    refreshData();
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('¿Eliminar este proyecto y todas sus actividades?')) return;
+    await fetch(`${API_URL}/projects/${id}`, {method: 'DELETE'});
+    refreshData();
+  };
+
+  const handleAddActivity = async () => {
+    if (!editingProject || !newActivity.title.trim()) return;
+    await fetch(`${API_URL}/tasks`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({...newActivity, project_id: editingProject.id, status: 'pending'}),
+    });
+    setNewActivity({title: '', description: '', priority: 'medium', due_date: ''});
+    refreshData();
+  };
+
+  const handleDeleteActivity = async (taskId: number) => {
+    await fetch(`${API_URL}/tasks/${taskId}`, {method: 'DELETE'});
+    refreshData();
+  };
+
+  const projectTasks = editingProject ? tasks.filter(t => t.project_id === editingProject.id) : [];
 
   return (
     <div className="p-6">
@@ -391,9 +448,87 @@ function ProjectsList() {
               </div>
               <p className="text-[#8BA3B9] text-sm mb-2">{p.description || 'Sin descripción'}</p>
               <p className="text-[#8BA3B9] text-xs">Fechas: {p.start_date || '-'} → {p.end_date || '-'}</p>
-              <p className="text-[#4CAAF2] text-sm mt-2">{tasks.filter(t => t.project_id === p.id).length} tareas</p>
+              <p className="text-[#4CAAF2] text-sm mt-2">{tasks.filter(t => t.project_id === p.id).length} actividades</p>
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => handleEdit(p)} className="bg-[#4CAAF2] px-3 py-1 rounded text-sm hover:bg-[#3a8ecc]">Editar</button>
+                <button onClick={() => handleDelete(p.id)} className="bg-[#F87171] px-3 py-1 rounded text-sm hover:bg-[#dc2626]">Eliminar</button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {showEditModal && editingProject && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1A2D44] rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Editar Proyecto</h2>
+            <form onSubmit={handleUpdate} className="space-y-4 mb-6">
+              <div>
+                <label className="text-[#8BA3B9] text-sm">Nombre</label>
+                <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-[#0F1C2E] p-2 rounded text-white mt-1" required />
+              </div>
+              <div>
+                <label className="text-[#8BA3B9] text-sm">Descripción</label>
+                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-[#0F1C2E] p-2 rounded text-white mt-1" rows={2} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[#8BA3B9] text-sm">Fecha inicio</label>
+                  <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} className="w-full bg-[#0F1C2E] p-2 rounded text-white mt-1" />
+                </div>
+                <div>
+                  <label className="text-[#8BA3B9] text-sm">Fecha fin</label>
+                  <input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} className="w-full bg-[#0F1C2E] p-2 rounded text-white mt-1" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[#8BA3B9] text-sm">Estado</label>
+                <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-[#0F1C2E] p-2 rounded text-white mt-1">
+                  <option value="active">Activo</option>
+                  <option value="completed">Completado</option>
+                  <option value="on_hold">En pausa</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" className="bg-[#4ADE80] px-4 py-2 rounded font-bold">Guardar cambios</button>
+                <button type="button" onClick={() => setShowEditModal(false)} className="bg-gray-500 px-4 py-2 rounded">Cancelar</button>
+              </div>
+            </form>
+
+            <div className="border-t border-[#2a3f5a] pt-4">
+              <h3 className="text-xl font-bold mb-3">Actividades del Proyecto</h3>
+              <div className="bg-[#0F1C2E] p-3 rounded-lg mb-4">
+                <p className="text-[#8BA3B9] text-sm mb-2">Agregar nueva actividad:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                  <input placeholder="Título" value={newActivity.title} onChange={e => setNewActivity({...newActivity, title: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" />
+                  <input type="date" value={newActivity.due_date} onChange={e => setNewActivity({...newActivity, due_date: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" />
+                </div>
+                <div className="flex gap-2">
+                  <select value={newActivity.priority} onChange={e => setNewActivity({...newActivity, priority: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white">
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                  </select>
+                  <button onClick={handleAddActivity} className="bg-[#4CAAF2] px-3 py-1 rounded text-sm">Agregar</button>
+                </div>
+              </div>
+              {projectTasks.length === 0 ? (
+                <p className="text-[#8BA3B9] text-sm">No hay actividades.</p>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {projectTasks.map(t => (
+                    <div key={t.id} className="flex justify-between items-center bg-[#0F1C2E] p-2 rounded">
+                      <div>
+                        <span className="font-medium">{t.title}</span>
+                        <span className={`ml-2 text-xs px-1 rounded ${t.status === 'completed' ? 'bg-green-500' : t.priority === 'high' ? 'bg-red-500' : 'bg-yellow-500'}`}>{t.status}</span>
+                      </div>
+                      <button onClick={() => handleDeleteActivity(t.id)} className="text-[#F87171] hover:text-red-400">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

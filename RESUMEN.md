@@ -42,8 +42,7 @@ Aplicación web para gestión de calendario, proyectos y seguimiento de calibrac
 - **Calendario Unificado** ✓ (Fase 2) - 3 vistas (mensual/semanal/diaria), eventos por color de vencimiento
 - **TDD Tests** ✓ (28 tests passing: 13 server + 15 client)
 - **Alertas Automáticas** ✓ (Fase 3) - Dashboard mejorado con endpoint /equipment/alerts, lista de equipos vencidos y por vencer
-- ✅ Deploy preparation: archivos configurados (vercel.json, Dockerfile, DEPLOY.md)
-- Pendiente: Deploy a producción
+- ✅ Desplegado en producción
 
 ---
 
@@ -81,9 +80,14 @@ agenda-1.0/
 
 ---
 
+## URLs de Producción
+- **Frontend**: https://agenda-frontend-s2tu.onrender.com
+- **Backend**: (desplegado en Render)
+- **Base de datos**: Neon (PostgreSQL)
+
 ## Costo Estimado
-- **Neon/Railway**: Gratis (500MB)
-- **Vercel**: Gratis
+- **Render**: Gratis (Frontend + Backend)
+- **Neon**: Gratis (500MB PostgreSQL)
 - **Total**: $0/mes
 
 ---
@@ -115,5 +119,11 @@ agenda-1.0/
 - Integración de FullCalendar con 3 vistas (mensual, semanal, diaria)
 - Eventos de proyectos en color azul
 - Eventos de calibraciones según vencimiento
+
+### 2026-05-04 - Deploy a Producción
+- Frontend desplegado en Render: https://agenda-frontend-s2tu.onrender.com
+- Backend desplegado en Render
+- Base de datos: Neon (PostgreSQL)
+- Fixes en Proyectos: eliminar clonación, agregar editar/eliminar, gestionar actividades
 
 (End of file)
