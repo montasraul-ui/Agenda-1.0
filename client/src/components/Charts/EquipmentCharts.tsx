@@ -11,6 +11,7 @@ interface Equipment {
   description: string;
   expiration_date: string;
   status: string;
+  notes?: string;
 }
 
 interface EquipmentChartsProps {
@@ -38,14 +39,17 @@ export default function EquipmentCharts({equipment}: EquipmentChartsProps) {
     in30Days.setDate(in30Days.getDate() + 30);
 
     safeEquipment.forEach(e => {
+      // Revisar status y notes para categorizar
+      const notesUpper = (e.notes || '').toUpperCase();
+
       // Out for Calibration (OC) - equipos retirada para calibrar
-      if (e.status === 'out_for_calibration') {
+      if (e.status === 'out_for_calibration' || notesUpper === 'OC') {
         outForCalibration.push(e);
         return;
       }
 
       // Fuera de Servicio (OS) - dañados/obsoletos
-      if (e.status === 'out_of_service') {
+      if (e.status === 'out_of_service' || notesUpper === 'OS') {
         fueraDeServicio.push(e);
         return;
       }
