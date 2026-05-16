@@ -51,6 +51,42 @@ export default function CalendarView() {
     loadEvents();
   };
 
+  const renderEventContent = (info: any) => {
+    const eventType = info.event.extendedProps.type;
+    const data = info.event.extendedProps.data;
+    let badgeLabel = 'E';
+    let badgeColor = '#F87171';
+
+    if (eventType === 'task') {
+      const taskData = data as TaskEvent;
+      if (taskData.project_id) {
+        badgeLabel = 'P';
+        badgeColor = '#4CAAF2';
+      } else {
+        badgeLabel = 'T';
+        badgeColor = '#A78BFA';
+      }
+    } else if (eventType === 'equipment') {
+      const eqData = data as EquipmentEvent;
+      const days = Math.ceil((new Date(eqData.expiration_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (days < 0) badgeColor = '#F87171';
+      else if (days <= 30) badgeColor = '#FBBF24';
+      else badgeColor = '#4ADE80';
+    }
+
+    return (
+      <div className="flex items-center gap-1 w-full overflow-hidden">
+        <span 
+          className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white"
+          style={{backgroundColor: badgeColor}}
+        >
+          {badgeLabel}
+        </span>
+        <span className="truncate text-white text-xs">{info.event.title}</span>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -65,24 +101,24 @@ export default function CalendarView() {
         <h1 className="text-3xl font-bold">Calendario</h1>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{backgroundColor: '#4CAAF2'}}></span>
-            <span className="text-[#8BA3B9]">Proyectos</span>
+            <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{backgroundColor: '#4CAAF2'}}>P</span>
+            <span className="text-[#8BA3B9]">Tarea Proyecto</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{backgroundColor: '#4ADE80'}}></span>
-            <span className="text-[#8BA3B9]">&gt;30 días (equipos)</span>
+            <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{backgroundColor: '#A78BFA'}}>T</span>
+            <span className="text-[#8BA3B9]">Tarea Libre</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{backgroundColor: '#FBBF24'}}></span>
-            <span className="text-[#8BA3B9]">≤30 días (equipos)</span>
+            <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{backgroundColor: '#4ADE80'}}>E</span>
+            <span className="text-[#8BA3B9]">&gt;30 días</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{backgroundColor: '#F87171'}}></span>
-            <span className="text-[#8BA3B9]">Vencido (equipos)</span>
+            <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{backgroundColor: '#FBBF24'}}>E</span>
+            <span className="text-[#8BA3B9]">≤30 días</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{backgroundColor: '#A78BFA'}}></span>
-            <span className="text-[#8BA3B9]">Tareas</span>
+            <span className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style={{backgroundColor: '#F87171'}}>E</span>
+            <span className="text-[#8BA3B9]">Vencido</span>
           </div>
         </div>
       </div>
@@ -122,6 +158,7 @@ export default function CalendarView() {
             next: 'Siguiente',
           }}
           eventClassNames="cursor-pointer hover:opacity-80"
+          eventContent={renderEventContent}
         />
       </div>
 
