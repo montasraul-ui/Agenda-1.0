@@ -136,11 +136,10 @@ export function mapTasksToEvents(tasks: TaskEvent[]): CalendarEvent[] {
 }
 
 /**
- * Combina equipos, tareas y proyectos en un solo array de eventos
+ * Combina equipos y tareas (proyectos no se muestran, solo sus actividades)
  */
-export function mergeEvents(equipment: EquipmentEvent[], tasks: TaskEvent[], projects: ProjectEvent[]): CalendarEvent[] {
+export function mergeEvents(equipment: EquipmentEvent[], tasks: TaskEvent[]): CalendarEvent[] {
   return [
-    ...mapProjectsToEvents(projects),
     ...mapEquipmentToEvents(equipment),
     ...mapTasksToEvents(tasks),
   ];

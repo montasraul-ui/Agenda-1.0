@@ -1,13 +1,17 @@
-import {useEffect} from 'react';
-import type {CalendarEvent, EquipmentEvent, ProjectEvent} from './calendarUtils';
+import {useEffect, useState} from 'react';
+import type {CalendarEvent, EquipmentEvent, ProjectEvent, TaskEvent} from './calendarUtils';
 import {formatDateShort, getExpirationStatus} from './calendarUtils';
+import {API_URL} from '../../config';
 
 interface EventModalProps {
   event: CalendarEvent | null;
   onClose: () => void;
+  onTaskCompleted?: () => void;
 }
 
-export default function EventModal({event, onClose}: EventModalProps) {
+export default function EventModal({event, onClose, onTaskCompleted}: EventModalProps) {
+  const [completing, setCompleting] = useState(false);
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -19,8 +23,45 @@ export default function EventModal({event, onClose}: EventModalProps) {
   if (!event) return null;
 
   const isProject = event.type === 'project';
+  const isTask = event.type === 'task';
   const projectData = isProject ? (event.data as ProjectEvent) : null;
-  const equipmentData = !isProject ? (event.data as EquipmentEvent) : null;
+  const equipmentData = !isProject && !isTask ? (event.data as EquipmentEvent) : null;
+  const taskData = isTask ? (event.data as TaskEvent) : null;
+
+  const handleCompleteTask = async () => {
+    if (!taskData || completing) return;
+    setCompleting(true);
+    try {
+      await fetch(`${API_URL}/tasks/${taskData.id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: 'completed'}),
+      });
+      onTaskCompleted?.();
+      onClose();
+    } catch (error) {
+      console.error('Error completing task:', error);
+      setCompleting(false);
+    }
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'Alta';
+      case 'medium': return 'Media';
+      case 'low': return 'Baja';
+      default: return priority;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return '#F87171';
+      case 'medium': return '#FBBF24';
+      case 'low': return '#4ADE80';
+      default: return '#A78BFA';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
@@ -78,7 +119,7 @@ export default function EventModal({event, onClose}: EventModalProps) {
             </>
           )}
 
-          {!isProject && equipmentData && (
+          {!isProject && !isTask && equipmentData && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -127,6 +168,62 @@ export default function EventModal({event, onClose}: EventModalProps) {
                 <div>
                   <p className="text-[#8BA3B9] text-sm">Notas</p>
                   <p className="text-white text-sm">{equipmentData.notes}</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {isTask && taskData && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[#8BA3B9] text-sm">Proyecto</p>
+                  <p className="text-white">{taskData.project_name || 'Sin proyecto'}</p>
+                </div>
+                <div>
+                  <p className="text-[#8BA3B9] text-sm">Estado</p>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    taskData.status === 'completed' ? 'bg-blue-500' : 
+                    taskData.status === 'in_progress' ? 'bg-yellow-500' : 'bg-gray-500'
+                  }`}>
+                    {taskData.status === 'completed' ? 'Completada' : 
+                     taskData.status === 'in_progress' ? 'En progreso' : 'Pendiente'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[#8BA3B9] text-sm">Prioridad</p>
+                  <span 
+                    className="px-2 py-1 rounded text-xs"
+                    style={{backgroundColor: getPriorityColor(taskData.priority)}}
+                  >
+                    {getPriorityLabel(taskData.priority)}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[#8BA3B9] text-sm">Fecha límite</p>
+                  <p className="text-white">{formatDateShort(taskData.due_date)}</p>
+                </div>
+              </div>
+
+              {taskData.description && (
+                <div>
+                  <p className="text-[#8BA3B9] text-sm">Descripción</p>
+                  <p className="text-white">{taskData.description}</p>
+                </div>
+              )}
+
+              {taskData.status !== 'completed' && (
+                <div className="mt-4 pt-4 border-t border-[#2a3f5a]">
+                  <button
+                    onClick={handleCompleteTask}
+                    disabled={completing}
+                    className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {completing ? 'Completando...' : '✓ Marcar como completada'}
+                  </button>
                 </div>
               )}
             </>

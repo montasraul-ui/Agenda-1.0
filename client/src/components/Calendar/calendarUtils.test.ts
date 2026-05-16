@@ -113,14 +113,10 @@ describe('mergeEvents', () => {
     const tasks = [
       { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
     ];
-    const projects = [
-      { id: 1, name: 'Proyecto 1', description: '', status: 'active', color: '#4CAAF2', start_date: '2026-01-01', end_date: '2026-12-31' },
-    ];
-    const events = mergeEvents(equipment, tasks, projects);
-    expect(events).toHaveLength(3);
+    const events = mergeEvents(equipment, tasks);
+    expect(events).toHaveLength(2);
     expect(events.find(e => e.type === 'equipment')).toBeDefined();
     expect(events.find(e => e.type === 'task')).toBeDefined();
-    expect(events.find(e => e.type === 'project')).toBeDefined();
   });
 });
 
