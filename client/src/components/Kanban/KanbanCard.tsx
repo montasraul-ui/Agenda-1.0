@@ -33,9 +33,13 @@ export default function KanbanCard({task, onClick, onDragStart}: KanbanCardProps
   return (
     <div
       draggable
-      onDragStart={(e) => onDragStart(e, task.id)}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', task.id.toString());
+        onDragStart(e, task.id);
+      }}
       onClick={onClick}
-      className={`bg-[#0F1C2E] p-3 rounded-lg cursor-pointer hover:bg-[#152538] transition-colors border-l-4 ${
+      className={`bg-[#0F1C2E] p-3 rounded-lg cursor-move hover:bg-[#152538] transition-colors border-l-4 ${
         isOverdue ? 'border-red-500' : 'border-transparent'
       }`}
     >

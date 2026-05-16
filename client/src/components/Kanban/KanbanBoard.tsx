@@ -226,9 +226,21 @@ export default function KanbanBoard({onEditTask}: KanbanBoardProps) {
       <div className="grid grid-cols-3 gap-4">
         {/* Pendiente */}
         <div 
-          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px]"
-          onDragOver={e => e.preventDefault()}
-          onDrop={(e) => handleDrop(e, 'pending')}
+          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px] transition-all duration-200"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDragEnter={(e) => {
+            e.currentTarget.classList.add('ring-2', 'ring-[#4CAAF2]', 'ring-opacity-50');
+          }}
+          onDragLeave={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-[#4CAAF2]', 'ring-opacity-50');
+          }}
+          onDrop={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-[#4CAAF2]', 'ring-opacity-50');
+            handleDrop(e, 'pending');
+          }}
         >
           <h3 className="font-bold text-white mb-4 flex items-center gap-2">
             Pendiente 
@@ -254,9 +266,21 @@ export default function KanbanBoard({onEditTask}: KanbanBoardProps) {
 
         {/* En Progreso */}
         <div 
-          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px]"
-          onDragOver={e => e.preventDefault()}
-          onDrop={(e) => handleDrop(e, 'in_progress')}
+          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px] transition-all duration-200"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDragEnter={(e) => {
+            e.currentTarget.classList.add('ring-2', 'ring-yellow-500', 'ring-opacity-50');
+          }}
+          onDragLeave={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-yellow-500', 'ring-opacity-50');
+          }}
+          onDrop={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-yellow-500', 'ring-opacity-50');
+            handleDrop(e, 'in_progress');
+          }}
         >
           <h3 className="font-bold text-white mb-4 flex items-center gap-2">
             En Progreso
@@ -282,9 +306,21 @@ export default function KanbanBoard({onEditTask}: KanbanBoardProps) {
 
         {/* Completado */}
         <div 
-          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px]"
-          onDragOver={e => e.preventDefault()}
-          onDrop={(e) => handleDrop(e, 'completed')}
+          className="bg-[#1A2D44] rounded-xl p-4 min-h-[400px] transition-all duration-200"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDragEnter={(e) => {
+            e.currentTarget.classList.add('ring-2', 'ring-green-500', 'ring-opacity-50');
+          }}
+          onDragLeave={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-green-500', 'ring-opacity-50');
+          }}
+          onDrop={(e) => {
+            e.currentTarget.classList.remove('ring-2', 'ring-green-500', 'ring-opacity-50');
+            handleDrop(e, 'completed');
+          }}
         >
           <h3 className="font-bold text-white mb-4 flex items-center gap-2">
             Completado
