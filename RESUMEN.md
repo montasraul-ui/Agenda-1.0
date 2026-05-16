@@ -215,7 +215,7 @@ agenda-1.0/
 
 ---
 
-## Deploy Kanban (mayo 2026) - reintento 2
+## Deploy Kanban (mayo 2026) - reintento 3
 
 ---
 
