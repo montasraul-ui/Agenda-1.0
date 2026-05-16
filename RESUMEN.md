@@ -215,6 +215,10 @@ agenda-1.0/
 
 ---
 
+## Deploy Kanban (mayo 2026)
+
+---
+
 ## Posibles Mejoras
 
 ### Arquitectura Modular - Sistema de Plugins
