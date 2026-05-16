@@ -5,8 +5,20 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tasks ORDER BY due_date ASC');
-    res.json(result.rows);
+    const result = await pool.query(`
+      SELECT 
+        t.id, t.project_id, t.title, t.description, t.status, t.priority, t.due_date,
+        p.name as projectname, p.color as projectcolor
+      FROM tasks t
+      LEFT JOIN projects p ON t.project_id = p.id
+      ORDER BY t.due_date ASC
+    `);
+    const tasks = result.rows.map(t => ({
+      ...t,
+      project_name: t.projectname,
+      project_color: t.projectcolor,
+    }));
+    res.json(tasks);
   } catch (error) {
     res.status(500).json({error: 'Failed to fetch tasks'});
   }
