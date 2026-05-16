@@ -38,6 +38,19 @@ app.post('/api/admin/fix-constraints', async (req, res) => {
   }
 });
 
+app.post('/api/admin/add-project-color', async (req, res) => {
+  try {
+    await pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS color VARCHAR(7) DEFAULT \'#4CAAF2\'');
+    res.json({success: true, message: 'Column added'});
+  } catch (error: any) {
+    if (error.code === '42701') {
+      res.json({success: true, message: 'Column already exists'});
+    } else {
+      res.status(500).json({error: error.message});
+    }
+  }
+});
+
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/tasks', tasksRoutes);
