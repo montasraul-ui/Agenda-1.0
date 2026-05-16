@@ -3,6 +3,7 @@ import {useState, useEffect} from 'react';
 import './App.css';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksView from './components/Tasks/TasksView';
+import KanbanBoard from './components/Kanban/KanbanBoard';
 import NotificationBell from './components/Alerts/NotificationBell';
 import EquipmentCharts from './components/Charts/EquipmentCharts';
 import ProjectChart from './components/Charts/ProjectChart';
@@ -49,6 +50,7 @@ function Navigation() {
     {path: '/projects', label: 'Proyectos', icon: '📁'},
     {path: '/tasks', label: 'Tareas', icon: '✅'},
     {path: '/calendar', label: 'Calendario', icon: '📅'},
+    {path: '/kanban', label: 'Kanban', icon: '📋'},
   ];
   return (
     <nav className="bg-[#1A2D44] p-4 flex gap-4 border-b border-[#2a3f5a]">
@@ -649,6 +651,7 @@ function App() {
             <Route path="/projects" element={<ProjectsList />} />
             <Route path="/tasks" element={<TasksView />} />
             <Route path="/calendar" element={<CalendarView />} />
+            <Route path="/kanban" element={<KanbanBoard />} />
           </Routes>
         </main>
       </div>
