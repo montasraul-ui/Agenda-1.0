@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import EventModal from './EventModal';
-import type {CalendarEvent, EquipmentEvent, TaskEvent} from './calendarUtils';
+import type {CalendarEvent, EquipmentEvent, ProjectEvent, TaskEvent} from './calendarUtils';
 import {mergeEvents} from './calendarUtils';
 import {API_URL} from '../../config';
 
@@ -12,17 +12,21 @@ export default function CalendarView() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [projects, setProjects] = useState<ProjectEvent[]>([]);
 
   const loadEvents = useCallback(async () => {
     try {
-      const [equipmentRes, tasksRes] = await Promise.all([
+      const [equipmentRes, tasksRes, projectsRes] = await Promise.all([
         fetch(`${API_URL}/equipment`),
         fetch(`${API_URL}/tasks`),
+        fetch(`${API_URL}/projects`),
       ]);
       
       const equipment: EquipmentEvent[] = await equipmentRes.json();
       const tasks: TaskEvent[] = await tasksRes.json();
+      const projectsData: ProjectEvent[] = await projectsRes.json();
       
+      setProjects(projectsData);
       const mergedEvents = mergeEvents(equipment, tasks);
       setEvents(mergedEvents);
     } catch (error) {
@@ -163,7 +167,7 @@ export default function CalendarView() {
       </div>
 
       {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={handleCloseModal} onTaskCompleted={handleTaskCompleted} />
+        <EventModal event={selectedEvent} onClose={handleCloseModal} onTaskCompleted={handleTaskCompleted} projects={projects} />
       )}
     </div>
   );

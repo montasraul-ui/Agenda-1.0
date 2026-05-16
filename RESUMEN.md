@@ -63,6 +63,15 @@ Aplicación web para gestión de calendario, proyectos y seguimiento de calibrac
 - Toggle para cambiar entre vista Cards y vista Gantt
 - Componente: `ProjectGantt.tsx`
 
+### 2. Editar Tarea desde Calendario
+- Al hacer click en tarea/actividad, abrir modal de detalles (solo lectura)
+- Agregar botón "Editar" en el modal
+- Al hacer click en "Editar", mostrar formulario completo con todos los campos
+- Formulario de edición debe ser igual al de creación (título, descripción, proyecto, fecha, hora, prioridad, recurrencia, estado)
+- Botón "Ver" para volver al modo solo lectura
+- Botón "Guardar" para actualizar la tarea (consumir PUT /api/tasks/:id)
+- Botón "Eliminar" para borrar la tarea
+
 ## Estructura de Archivos
 ```
 agenda-1.0/
