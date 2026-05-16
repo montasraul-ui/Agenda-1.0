@@ -2,8 +2,8 @@ import {describe, it, expect} from 'vitest';
 import {
   getDaysUntilExpiration,
   getEquipmentColor,
-  mapProjectsToEvents,
   mapEquipmentToEvents,
+  mapTasksToEvents,
   mergeEvents,
   getExpirationStatus,
   formatDateShort,
@@ -54,16 +54,34 @@ describe('getEquipmentColor', () => {
   });
 });
 
-describe('mapProjectsToEvents', () => {
-  it('should map projects to calendar events', () => {
-    const projects = [
-      { id: 1, name: 'Proyecto 1', description: 'Desc', status: 'active', start_date: '2026-06-01', end_date: '2026-06-30' },
+describe('mapTasksToEvents', () => {
+  it('should map tasks to calendar events with project color', () => {
+    const tasks = [
+      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
     ];
-    const events = mapProjectsToEvents(projects);
+    const events = mapTasksToEvents(tasks);
     expect(events).toHaveLength(1);
-    expect(events[0].type).toBe('project');
-    expect(events[0].color).toBe(COLORS.project);
-    expect(events[0].title).toBe('Proyecto 1');
+    expect(events[0].type).toBe('task');
+    expect(events[0].color).toBe('#4CAAF2');
+    expect(events[0].title).toContain('Tarea 1');
+    expect(events[0].title).toContain('Proyecto 1');
+  });
+
+  it('should use priority color when no project color', () => {
+    const tasks = [
+      { id: 1, project_id: null, title: 'Tarea sin proyecto', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+    ];
+    const events = mapTasksToEvents(tasks);
+    expect(events).toHaveLength(1);
+    expect(events[0].color).toBe(COLORS.taskHigh);
+  });
+
+  it('should filter out completed tasks', () => {
+    const tasks = [
+      { id: 1, project_id: 1, title: 'Tarea completada', description: '', status: 'completed', priority: 'medium', due_date: '2026-06-15' },
+    ];
+    const events = mapTasksToEvents(tasks);
+    expect(events).toHaveLength(0);
   });
 });
 
@@ -88,18 +106,21 @@ describe('mapEquipmentToEvents', () => {
 });
 
 describe('mergeEvents', () => {
-  it('should merge projects, equipment and tasks', () => {
-    const projects = [
-      { id: 1, name: 'Proyecto 1', description: 'Desc', status: 'active', start_date: '2026-06-01', end_date: '2026-06-30' },
-    ];
+  it('should merge equipment and tasks (no projects)', () => {
     const equipment = [
       { id: 1, external_id: 'DR-00001', description: 'Sensor', location: '', calibration_date: '', expiration_date: '2026-12-01', status: 'calibrated', norm: '', notes: '' },
     ];
     const tasks = [
-      { id: 1, project_id: 1, title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
     ];
-    const events = mergeEvents(projects, equipment, tasks);
+    const projects = [
+      { id: 1, name: 'Proyecto 1', description: '', status: 'active', color: '#4CAAF2', start_date: '2026-01-01', end_date: '2026-12-31' },
+    ];
+    const events = mergeEvents(equipment, tasks, projects);
     expect(events).toHaveLength(3);
+    expect(events.find(e => e.type === 'equipment')).toBeDefined();
+    expect(events.find(e => e.type === 'task')).toBeDefined();
+    expect(events.find(e => e.type === 'project')).toBeDefined();
   });
 });
 

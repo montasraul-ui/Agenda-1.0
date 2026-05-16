@@ -14,6 +14,7 @@ export interface ProjectEvent {
   name: string;
   description: string;
   status: string;
+  color: string;
   start_date: string;
   end_date: string;
 }
@@ -21,6 +22,8 @@ export interface ProjectEvent {
 export interface TaskEvent {
   id: number;
   project_id: number | null;
+  project_name?: string;
+  project_color?: string;
   title: string;
   description: string;
   status: string;
@@ -90,7 +93,7 @@ export function mapProjectsToEvents(projects: ProjectEvent[]): CalendarEvent[] {
     title: project.name,
     start: project.start_date,
     end: project.end_date,
-    color: COLORS.project,
+    color: project.color || COLORS.project,
     type: 'project',
     data: project,
   }));
@@ -115,18 +118,17 @@ export function mapEquipmentToEvents(equipment: EquipmentEvent[]): CalendarEvent
 /**
  * Convierte tareas a eventos del calendario
  */
-export function mapTasksToEvents(tasks: TaskEvent[], projects: ProjectEvent[]): CalendarEvent[] {
-  const projectMap = new Map(projects.map(p => [p.id, p.name]));
-  
+export function mapTasksToEvents(tasks: TaskEvent[]): CalendarEvent[] {
   return tasks
     .filter(task => task.due_date && task.status !== 'completed')
     .map(task => {
-      const projectName = task.project_id ? projectMap.get(task.project_id) : 'Sin proyecto';
+      const projectName = task.project_name || 'Sin proyecto';
+      const color = task.project_color || getPriorityColor(task.priority);
       return {
         id: `task-${task.id}`,
         title: `${task.title} (${projectName})`,
         start: task.due_date,
-        color: getPriorityColor(task.priority),
+        color: color,
         type: 'task' as const,
         data: task,
       };
@@ -134,13 +136,13 @@ export function mapTasksToEvents(tasks: TaskEvent[], projects: ProjectEvent[]): 
 }
 
 /**
- * Combina proyectos, equipos y tareas en un solo array de eventos
+ * Combina equipos, tareas y proyectos en un solo array de eventos
  */
-export function mergeEvents(projects: ProjectEvent[], equipment: EquipmentEvent[], tasks: TaskEvent[]): CalendarEvent[] {
+export function mergeEvents(equipment: EquipmentEvent[], tasks: TaskEvent[], projects: ProjectEvent[]): CalendarEvent[] {
   return [
     ...mapProjectsToEvents(projects),
     ...mapEquipmentToEvents(equipment),
-    ...mapTasksToEvents(tasks, projects),
+    ...mapTasksToEvents(tasks),
   ];
 }
 

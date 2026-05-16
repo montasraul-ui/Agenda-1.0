@@ -26,6 +26,7 @@ interface Project {
   name: string;
   description: string;
   status: string;
+  color: string;
   start_date: string;
   end_date: string;
 }
@@ -384,7 +385,18 @@ function ProjectsList() {
   const [showForm, setShowForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [form, setForm] = useState({name: '', description: '', status: 'active', start_date: '', end_date: ''});
+  const [form, setForm] = useState({name: '', description: '', status: 'active', color: '#4CAAF2', start_date: '', end_date: ''});
+
+  const PROJECT_COLORS = [
+    {value: '#4CAAF2', label: 'Azul'},
+    {value: '#4ADE80', label: 'Verde'},
+    {value: '#FBBF24', label: 'Amarillo'},
+    {value: '#F87171', label: 'Rojo'},
+    {value: '#A78BFA', label: 'Morado'},
+    {value: '#F472B6', label: 'Rosa'},
+    {value: '#22D3EE', label: 'Cian'},
+    {value: '#FB923C', label: 'Naranja'},
+  ];
   const [newActivity, setNewActivity] = useState({title: '', description: '', priority: 'medium', due_date: ''});
 
   const refreshData = async () => {
@@ -409,13 +421,13 @@ function ProjectsList() {
     });
     const newProject = await res.json();
     setShowForm(false);
-    setForm({name: '', description: '', status: 'active', start_date: '', end_date: ''});
+    setForm({name: '', description: '', status: 'active', color: '#4CAAF2', start_date: '', end_date: ''});
     setProjects([...projects, newProject]);
   };
 
   const handleEdit = (project: Project) => {
     setEditingProject(project);
-    setForm({name: project.name, description: project.description || '', status: project.status, start_date: project.start_date || '', end_date: project.end_date || ''});
+    setForm({name: project.name, description: project.description || '', status: project.status, color: project.color || '#4CAAF2', start_date: project.start_date || '', end_date: project.end_date || ''});
     setShowEditModal(true);
   };
 
@@ -473,6 +485,13 @@ function ProjectsList() {
             <option value="completed">Completado</option>
             <option value="on_hold">En pausa</option>
           </select>
+          <div className="flex items-center gap-2">
+            {PROJECT_COLORS.map(c => (
+              <button key={c.value} type="button" onClick={() => setForm({...form, color: c.value})}
+                className={`w-6 h-6 rounded-full border-2 ${form.color === c.value ? 'border-white' : 'border-transparent'}`}
+                style={{backgroundColor: c.value}} title={c.label} />
+            ))}
+          </div>
           <button type="submit" className="bg-[#4ADE80] col-span-3 p-2 rounded font-bold">Guardar</button>
         </form>
       )}

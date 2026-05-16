@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import EventModal from './EventModal';
-import type {CalendarEvent, ProjectEvent, EquipmentEvent} from './calendarUtils';
+import type {CalendarEvent, EquipmentEvent, ProjectEvent, TaskEvent} from './calendarUtils';
 import {mergeEvents} from './calendarUtils';
 import {API_URL} from '../../config';
 
@@ -15,17 +15,17 @@ export default function CalendarView() {
 
   const loadEvents = useCallback(async () => {
     try {
-      const [projectsRes, equipmentRes, tasksRes] = await Promise.all([
-        fetch(`${API_URL}/projects`),
+      const [equipmentRes, tasksRes, projectsRes] = await Promise.all([
         fetch(`${API_URL}/equipment`),
         fetch(`${API_URL}/tasks`),
+        fetch(`${API_URL}/projects`),
       ]);
       
-      const projects: ProjectEvent[] = await projectsRes.json();
       const equipment: EquipmentEvent[] = await equipmentRes.json();
-      const tasks: any[] = await tasksRes.json();
+      const tasks: TaskEvent[] = await tasksRes.json();
+      const projects: ProjectEvent[] = await projectsRes.json();
       
-      const mergedEvents = mergeEvents(projects, equipment, tasks);
+      const mergedEvents = mergeEvents(equipment, tasks, projects);
       setEvents(mergedEvents);
     } catch (error) {
       console.error('Error loading calendar events:', error);
@@ -68,15 +68,19 @@ export default function CalendarView() {
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded" style={{backgroundColor: '#4ADE80'}}></span>
-            <span className="text-[#8BA3B9]">&gt;30 días</span>
+            <span className="text-[#8BA3B9]">&gt;30 días (equipos)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded" style={{backgroundColor: '#FBBF24'}}></span>
-            <span className="text-[#8BA3B9]">≤30 días</span>
+            <span className="text-[#8BA3B9]">≤30 días (equipos)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded" style={{backgroundColor: '#F87171'}}></span>
-            <span className="text-[#8BA3B9]">Vencido</span>
+            <span className="text-[#8BA3B9]">Vencido (equipos)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{backgroundColor: '#A78BFA'}}></span>
+            <span className="text-[#8BA3B9]">Tareas</span>
           </div>
         </div>
       </div>
