@@ -52,6 +52,17 @@ Aplicación web para gestión de calendario, proyectos y seguimiento de calibrac
 
 ---
 
+## Tareas Pendientes
+
+### 1. Diagrama de Gantt para Proyectos
+- Agregar vista de Diagrama de Gantt en sección de Proyectos
+- Mostrar proyectos como barras horizontales según fechas (start_date → end_date)
+- Color de cada barra según el color del proyecto
+- Barra de progreso interior mostrando % de tareas completadas
+- Implementación recomendada: FullCalendar Timeline view (ya instalado)
+- Toggle para cambiar entre vista Cards y vista Gantt
+- Componente: `ProjectGantt.tsx`
+
 ## Estructura de Archivos
 ```
 agenda-1.0/
@@ -187,5 +198,10 @@ agenda-1.0/
 - Lista de tareas próximas incluye tareas vencidas
 - Indicador visual (⚠️ + borde rojo) para tareas atrasadas
 - Tareas vencidas aparecen primero en la lista
+
+### 2026-05-04 - Keep-Alive para Render
+- Render gratuito se "duerme" después de 15 minutos de inactividad
+- Solución: Configurar cronjob en cron-job.org para ping cada 10 minutos
+- URL de ping: https://agenda-backend-zrd6.onrender.com/api/health
 
 (End of file)

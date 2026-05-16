@@ -51,6 +51,22 @@ app.post('/api/admin/add-project-color', async (req, res) => {
   }
 });
 
+app.post('/api/admin/add-task-time', async (req, res) => {
+  try {
+    await pool.query('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_time TIME NOT NULL DEFAULT \'09:00\'');
+    await pool.query('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence VARCHAR(20) DEFAULT \'none\'');
+    await pool.query('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence_interval INTEGER DEFAULT 1');
+    await pool.query('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS recurrence_end DATE');
+    res.json({success: true, message: 'Task columns added'});
+  } catch (error: any) {
+    if (error.code === '42701') {
+      res.json({success: true, message: 'Columns already exist'});
+    } else {
+      res.status(500).json({error: error.message});
+    }
+  }
+});
+
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/tasks', tasksRoutes);

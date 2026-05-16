@@ -5,6 +5,7 @@ export interface CalendarEvent {
   start: string;
   end?: string;
   color: string;
+  allDay?: boolean;
   type: 'project' | 'equipment' | 'task';
   data: ProjectEvent | EquipmentEvent | TaskEvent;
 }
@@ -29,6 +30,10 @@ export interface TaskEvent {
   status: string;
   priority: string;
   due_date: string;
+  due_time: string;
+  recurrence: string;
+  recurrence_interval: number;
+  recurrence_end: string | null;
 }
 
 export interface EquipmentEvent {
@@ -108,7 +113,8 @@ export function mapEquipmentToEvents(equipment: EquipmentEvent[]): CalendarEvent
     .map(eq => ({
       id: `equipment-${eq.id}`,
       title: `${eq.external_id}: ${eq.description}`,
-      start: eq.expiration_date,
+      start: `${eq.expiration_date}T23:59:00`,
+      allDay: true,
       color: getEquipmentColor(eq.expiration_date),
       type: 'equipment',
       data: eq,
@@ -124,10 +130,12 @@ export function mapTasksToEvents(tasks: TaskEvent[]): CalendarEvent[] {
     .map(task => {
       const projectName = task.project_name || 'Sin proyecto';
       const color = task.project_color || getPriorityColor(task.priority);
+      const dueTime = task.due_time || '09:00';
       return {
         id: `task-${task.id}`,
         title: `${task.title} (${projectName})`,
-        start: task.due_date,
+        start: `${task.due_date}T${dueTime}:00`,
+        allDay: false,
         color: color,
         type: 'task' as const,
         data: task,

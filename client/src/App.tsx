@@ -397,7 +397,7 @@ function ProjectsList() {
     {value: '#22D3EE', label: 'Cian'},
     {value: '#FB923C', label: 'Naranja'},
   ];
-  const [newActivity, setNewActivity] = useState({title: '', description: '', priority: 'medium', due_date: ''});
+  const [newActivity, setNewActivity] = useState({title: '', description: '', priority: 'medium', due_date: '', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: ''});
 
   const refreshData = async () => {
     const [p, t] = await Promise.all([
@@ -455,9 +455,9 @@ function ProjectsList() {
     await fetch(`${API_URL}/tasks`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({...newActivity, project_id: editingProject.id, status: 'pending'}),
+      body: JSON.stringify({...newActivity, project_id: editingProject.id, status: 'pending', recurrence_end: newActivity.recurrence_end || null}),
     });
-    setNewActivity({title: '', description: '', priority: 'medium', due_date: ''});
+    setNewActivity({title: '', description: '', priority: 'medium', due_date: '', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: ''});
     refreshData();
   };
 
@@ -581,15 +581,29 @@ function ProjectsList() {
               <div className="bg-[#0F1C2E] p-3 rounded-lg mb-4">
                 <p className="text-[#8BA3B9] text-sm mb-2">Agregar nueva actividad:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                  <input placeholder="Título" value={newActivity.title} onChange={e => setNewActivity({...newActivity, title: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" />
-                  <input type="date" value={newActivity.due_date} onChange={e => setNewActivity({...newActivity, due_date: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" />
+                  <input placeholder="Título" value={newActivity.title} onChange={e => setNewActivity({...newActivity, title: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" required />
+                  <input type="date" value={newActivity.due_date} onChange={e => setNewActivity({...newActivity, due_date: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" required />
                 </div>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                  <input type="time" value={newActivity.due_time} onChange={e => setNewActivity({...newActivity, due_time: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white" required />
                   <select value={newActivity.priority} onChange={e => setNewActivity({...newActivity, priority: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white">
                     <option value="low">Baja</option>
                     <option value="medium">Media</option>
                     <option value="high">Alta</option>
                   </select>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                  <select value={newActivity.recurrence} onChange={e => setNewActivity({...newActivity, recurrence: e.target.value})} className="bg-[#1A2D44] p-2 rounded text-white">
+                    <option value="none">No repetir</option>
+                    <option value="daily">Diariamente</option>
+                    <option value="weekly">Semanalmente</option>
+                    <option value="monthly">Mensualmente</option>
+                  </select>
+                  {newActivity.recurrence !== 'none' && (
+                    <input type="number" min="1" value={newActivity.recurrence_interval} onChange={e => setNewActivity({...newActivity, recurrence_interval: parseInt(e.target.value) || 1})} className="bg-[#1A2D44] p-2 rounded text-white" placeholder="Intervalo" />
+                  )}
+                </div>
+                <div className="flex gap-2 mt-2">
                   <button onClick={handleAddActivity} className="bg-[#4CAAF2] px-3 py-1 rounded text-sm">Agregar</button>
                 </div>
               </div>

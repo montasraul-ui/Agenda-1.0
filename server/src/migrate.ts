@@ -21,11 +21,19 @@ const initDB = async () => {
       name VARCHAR(255) NOT NULL,
       description TEXT,
       status VARCHAR(20) DEFAULT 'active',
+      color VARCHAR(7) DEFAULT '#4CAAF2',
       start_date DATE,
       end_date DATE,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
+
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'color') THEN
+        ALTER TABLE projects ADD COLUMN color VARCHAR(7) DEFAULT '#4CAAF2';
+      END IF;
+    END $$;
 
     CREATE TABLE IF NOT EXISTS tasks (
       id SERIAL PRIMARY KEY,

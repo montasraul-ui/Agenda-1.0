@@ -57,7 +57,7 @@ describe('getEquipmentColor', () => {
 describe('mapTasksToEvents', () => {
   it('should map tasks to calendar events with project color', () => {
     const tasks = [
-      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: null },
     ];
     const events = mapTasksToEvents(tasks);
     expect(events).toHaveLength(1);
@@ -65,11 +65,12 @@ describe('mapTasksToEvents', () => {
     expect(events[0].color).toBe('#4CAAF2');
     expect(events[0].title).toContain('Tarea 1');
     expect(events[0].title).toContain('Proyecto 1');
+    expect(events[0].allDay).toBe(false);
   });
 
   it('should use priority color when no project color', () => {
     const tasks = [
-      { id: 1, project_id: null, title: 'Tarea sin proyecto', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+      { id: 1, project_id: null, title: 'Tarea sin proyecto', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: null },
     ];
     const events = mapTasksToEvents(tasks);
     expect(events).toHaveLength(1);
@@ -78,7 +79,7 @@ describe('mapTasksToEvents', () => {
 
   it('should filter out completed tasks', () => {
     const tasks = [
-      { id: 1, project_id: 1, title: 'Tarea completada', description: '', status: 'completed', priority: 'medium', due_date: '2026-06-15' },
+      { id: 1, project_id: 1, title: 'Tarea completada', description: '', status: 'completed', priority: 'medium', due_date: '2026-06-15', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: null },
     ];
     const events = mapTasksToEvents(tasks);
     expect(events).toHaveLength(0);
@@ -111,12 +112,14 @@ describe('mergeEvents', () => {
       { id: 1, external_id: 'DR-00001', description: 'Sensor', location: '', calibration_date: '', expiration_date: '2026-12-01', status: 'calibrated', norm: '', notes: '' },
     ];
     const tasks = [
-      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15' },
+      { id: 1, project_id: 1, project_name: 'Proyecto 1', project_color: '#4CAAF2', title: 'Tarea 1', description: '', status: 'pending', priority: 'high', due_date: '2026-06-15', due_time: '09:00', recurrence: 'none', recurrence_interval: 1, recurrence_end: null },
     ];
     const events = mergeEvents(equipment, tasks);
     expect(events).toHaveLength(2);
     expect(events.find(e => e.type === 'equipment')).toBeDefined();
     expect(events.find(e => e.type === 'task')).toBeDefined();
+    expect(events.find(e => e.type === 'equipment')?.allDay).toBe(true);
+    expect(events.find(e => e.type === 'task')?.allDay).toBe(false);
   });
 });
 

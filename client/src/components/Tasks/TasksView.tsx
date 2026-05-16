@@ -9,6 +9,10 @@ interface Task {
   status: string;
   priority: string;
   due_date: string;
+  due_time: string;
+  recurrence: string;
+  recurrence_interval: number;
+  recurrence_end: string | null;
 }
 
 interface Project {
@@ -29,7 +33,11 @@ export default function TasksView() {
     description: '',
     status: 'pending',
     priority: 'medium',
-    due_date: ''
+    due_date: '',
+    due_time: '09:00',
+    recurrence: 'none',
+    recurrence_interval: 1,
+    recurrence_end: ''
   });
 
   useEffect(() => {
@@ -55,7 +63,8 @@ export default function TasksView() {
     e.preventDefault();
     const payload = {
       ...form,
-      project_id: form.project_id === '' ? null : form.project_id
+      project_id: form.project_id === '' ? null : form.project_id,
+      recurrence_end: form.recurrence_end || null
     };
     
     await fetch(`${API_URL}/tasks`, {
@@ -71,7 +80,11 @@ export default function TasksView() {
       description: '',
       status: 'pending',
       priority: 'medium',
-      due_date: ''
+      due_date: '',
+      due_time: '09:00',
+      recurrence: 'none',
+      recurrence_interval: 1,
+      recurrence_end: ''
     });
     loadData();
   };
@@ -225,7 +238,53 @@ export default function TasksView() {
             value={form.due_date}
             onChange={e => setForm({...form, due_date: e.target.value})}
             className="bg-[#0F1C2E] p-2 rounded text-white"
+            required
           />
+          
+          <input 
+            type="time"
+            value={form.due_time}
+            onChange={e => setForm({...form, due_time: e.target.value})}
+            className="bg-[#0F1C2E] p-2 rounded text-white"
+            required
+          />
+          
+          <select
+            value={form.recurrence}
+            onChange={e => setForm({...form, recurrence: e.target.value})}
+            className="bg-[#0F1C2E] p-2 rounded text-white"
+          >
+            <option value="none">No repetir</option>
+            <option value="daily">Diariamente</option>
+            <option value="weekly">Semanalmente</option>
+            <option value="monthly">Mensualmente</option>
+          </select>
+          
+          {form.recurrence !== 'none' && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-[#8BA3B9] text-sm">Cada:</span>
+                <input 
+                  type="number"
+                  min="1"
+                  value={form.recurrence_interval}
+                  onChange={e => setForm({...form, recurrence_interval: parseInt(e.target.value) || 1})}
+                  className="bg-[#0F1C2E] p-2 rounded text-white w-16"
+                />
+                <span className="text-[#8BA3B9] text-sm">
+                  {form.recurrence === 'daily' ? 'día(s)' : form.recurrence === 'weekly' ? 'semana(s)' : 'mes(es)'}
+                </span>
+              </div>
+              
+              <input 
+                type="date"
+                value={form.recurrence_end}
+                onChange={e => setForm({...form, recurrence_end: e.target.value})}
+                className="bg-[#0F1C2E] p-2 rounded text-white"
+                placeholder="Fin recurrencia"
+              />
+            </>
+          )}
           
           <button type="submit" className="bg-[#4ADE80] col-span-1 p-2 rounded font-bold">
             Guardar
