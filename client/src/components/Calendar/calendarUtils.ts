@@ -133,7 +133,7 @@ export function mapTasksToEvents(tasks: TaskEvent[]): CalendarEvent[] {
     .map(task => {
       const projectName = task.project_name || 'Sin proyecto';
       const color = task.project_color || getPriorityColor(task.priority);
-      const dueTime = task.due_time || '09:00';
+      const dueTime = (task.due_time || '09:00').substring(0, 5);
       const dueDateOnly = task.due_date.split('T')[0];
       return {
         id: `task-${task.id}`,
