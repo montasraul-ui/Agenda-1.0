@@ -213,4 +213,109 @@ agenda-1.0/
 - Solución: Configurar cronjob en cron-job.org para ping cada 10 minutos
 - URL de ping: https://agenda-backend-zrd6.onrender.com/api/health
 
+---
+
+## Posibles Mejoras
+
+### Arquitectura Modular - Sistema de Plugins
+
+**Objetivo**: Permitir al usuario configurar qué módulos aparecen en su menú, permitiendo agregar/quitar funcionalidades según sus necesidades.
+
+#### Estructura Propuesta
+
+```
+client/src/
+├── modules/                          (módulos independientes)
+│   ├── Dashboard/
+│   │   ├── index.tsx
+│   │   ├── config.ts                 (configuración del módulo)
+│   │   └── types.ts
+│   ├── Equipment/
+│   ├── Projects/
+│   ├── Tasks/
+│   ├── Calendar/
+│   ├── Kanban/
+│   └── Settings/                     (configuración de módulos)
+├── core/
+│   ├── ModuleRegistry.tsx            (registro central)
+│   ├── UserConfigContext.tsx        (contexto de configuración)
+│   ├── SharedDataContext.tsx         (datos compartidos)
+│   └── events.ts                     (sistema de eventos)
+├── App.tsx                           (orquestador - ligero)
+└── Navigation.tsx                    (menú dinámico)
+```
+
+#### Configuración por Usuario (Backend)
+
+```sql
+-- Nueva tabla
+CREATE TABLE user_module_config (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) UNIQUE NOT NULL,
+  enabled_modules TEXT[] DEFAULT ARRAY['dashboard', 'equipment', 'projects', 'tasks', 'calendar', 'kanban'],
+  module_order INTEGER[] DEFAULT ARRAY[0, 1, 2, 3, 4, 5],
+  theme VARCHAR(20) DEFAULT 'dark',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### Endpoints API
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/user-config/:userId` | Obtener configuración del usuario |
+| PUT | `/api/user-config/:userId` | Actualizar configuración |
+| GET | `/api/modules/available` | Listar todos los módulos disponibles |
+
+#### Template de each Módulo
+
+```typescript
+// modules/[Nombre]/config.ts
+export const moduleConfig = {
+  id: 'nombre',
+  name: 'Nombre en español',
+  icon: 'emoji',
+  description: 'descripción breve',
+  enabledByDefault: true,
+  routes: ['/ruta'],
+  dependencies: [],
+};
+```
+
+#### Comunicación entre Módulos
+
+| Método | Uso |
+|--------|-----|
+| SharedDataContext | Datos compartidos (equipment, projects, tasks) |
+| Custom Events | Notificaciones cruzadas (task:created, task:completed, etc) |
+
+#### Página de Configuración
+
+UI para que el usuario pueda:
+- Toggle para activar/desactivar cada módulo
+- Reordenar módulos con drag & drop
+- Guardar configuración en backend
+
+#### Beneficios
+
+- **Escalabilidad**: Agregar nuevos módulos sin modificar código existente
+- **Personalización**: Usuario configura su entorno de trabajo
+- **Mantenibilidad**: Cada módulo es independiente
+- **Testabilidad**: Módulos se pueden probar aisladamente
+
+#### Plan de Implementación Estimado
+
+| Fase | Descripción | Estimación |
+|------|-------------|------------|
+| 1 | Backend: tabla + endpoints de configuración | 1.5 hrs |
+| 2 | Core: ModuleRegistry, Contexts, events | 2 hrs |
+| 3 | Crear estructura de carpetas modules/ | 0.5 hr |
+| 4-9 | Migrar 6 módulos existentes (Dashboard→Kanban) | 7 hrs |
+| 10 | Navigation dinámica + App.tsx | 1 hr |
+| 11 | Settings page para configurar módulos | 1.5 hrs |
+| 12 | Testing y ajustes finales | 2 hrs |
+
+**Total estimado: ~15 horas**
+
 (End of file)
