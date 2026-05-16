@@ -110,15 +110,18 @@ export function mapProjectsToEvents(projects: ProjectEvent[]): CalendarEvent[] {
 export function mapEquipmentToEvents(equipment: EquipmentEvent[]): CalendarEvent[] {
   return equipment
     .filter(eq => eq.expiration_date)
-    .map(eq => ({
-      id: `equipment-${eq.id}`,
-      title: `${eq.external_id}: ${eq.description}`,
-      start: `${eq.expiration_date}T23:59:00`,
-      allDay: true,
-      color: getEquipmentColor(eq.expiration_date),
-      type: 'equipment',
-      data: eq,
-    }));
+    .map(eq => {
+      const expDateOnly = eq.expiration_date.split('T')[0];
+      return {
+        id: `equipment-${eq.id}`,
+        title: `${eq.external_id}: ${eq.description}`,
+        start: `${expDateOnly}T23:59:00`,
+        allDay: true,
+        color: getEquipmentColor(eq.expiration_date),
+        type: 'equipment',
+        data: eq,
+      };
+    });
 }
 
 /**
@@ -131,10 +134,11 @@ export function mapTasksToEvents(tasks: TaskEvent[]): CalendarEvent[] {
       const projectName = task.project_name || 'Sin proyecto';
       const color = task.project_color || getPriorityColor(task.priority);
       const dueTime = task.due_time || '09:00';
+      const dueDateOnly = task.due_date.split('T')[0];
       return {
         id: `task-${task.id}`,
         title: `${task.title} (${projectName})`,
-        start: `${task.due_date}T${dueTime}:00`,
+        start: `${dueDateOnly}T${dueTime}:00`,
         allDay: false,
         color: color,
         type: 'task' as const,
